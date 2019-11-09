@@ -71,7 +71,7 @@
     {
     _sm.current_state = hyped::data::State::kAccelerating;
     _d->setStateMachineData(_sm);
-    ASSERT_TRUE(!(_sys->fake_imu_fail));g
+    ASSERT_TRUE(!(_sys->fake_imu_fail));
     ASSERT_TRUE(_sys->fake_imu_fail);
 
 }
