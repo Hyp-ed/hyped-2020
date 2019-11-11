@@ -1,5 +1,5 @@
 #include "gtest/gtest.h"
-//#include "gmock/gmock.h" //INCLUDE ME ONCE MAKEFILE INCLUDES ME
+#include "gmock/gmock.h" //INCLUDE ME ONCE MAKEFILE INCLUDES ME
 #include "utils/logger.hpp"
 #include "data/data.hpp"
 #include "state_machine/hyped-machine.hpp"
