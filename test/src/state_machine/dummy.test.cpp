@@ -1,7 +1,9 @@
 #include "gtest/gtest.h"
+//#include "gmock/gmock.h" //INCLUDE ME ONCE MAKEFILE INCLUDES ME
 #include "utils/logger.hpp"
 #include "data/data.hpp"
 #include "state_machine/hyped-machine.hpp"
+
 
 //     stateMachineTest
 
@@ -65,4 +67,14 @@ TEST_F(stateMachineMock, state_machine_mock)
   _d->setStateMachineData(_sm);
   ASSERT_TRUE(_sys->fake_imu_fail);
 }
+
+/*
+ * Google mock
+ */
+
+//using ::testing::AtLeast; //need gmock included
+
+
+
+
 
