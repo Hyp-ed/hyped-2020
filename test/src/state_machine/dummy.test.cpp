@@ -1,5 +1,5 @@
 #include "gtest/gtest.h"
-#include "gmock/gmock.h" //INCLUDE ME ONCE MAKEFILE INCLUDES ME
+#include "gmock/gmock.h"
 #include "utils/logger.hpp"
 #include "data/data.hpp"
 #include "state_machine/hyped-machine.hpp"
@@ -72,7 +72,7 @@ TEST_F(stateMachineMock, state_machine_mock)
  * Google mock
  */
 
-//using ::testing::AtLeast; //need gmock included
+using ::testing::AtLeast;
 
 
 
