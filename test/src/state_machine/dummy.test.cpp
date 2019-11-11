@@ -3,7 +3,7 @@
 #include "utils/logger.hpp"
 #include "data/data.hpp"
 #include "state_machine/hyped-machine.hpp"
-
+#include "dummt.test.h"
 
 //     stateMachineTest
 
@@ -73,6 +73,14 @@ TEST_F(stateMachineMock, state_machine_mock)
  */
 
 using ::testing::AtLeast;
+
+TEST(StateTransitionTest, AcceleratingDecelerating)
+{
+  MockHypedMachine hypedMachine;
+  EXPECT_CALL( hypedMachine, transition(hyped::data::State::kNominalBraking))
+    .Times(AtLeast(1));
+
+}
 
 
 
