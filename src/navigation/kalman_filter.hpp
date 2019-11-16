@@ -1,5 +1,5 @@
 /*
- * Author: Lukas Schaefer
+ * Author: George Karabassis
  * Organisation: HYPED
  * Date: 30/03/2019
  * Description: Header for Kalman filter (interface for filter and filter setup)
@@ -37,49 +37,85 @@ using utils::math::KalmanMultivariate;
 
 namespace navigation {
 
-class KalmanFilter
-{
-  public:
-    KalmanFilter(unsigned int n = 3, unsigned int m = 1, unsigned int k = 0);
-    void setup();
-    void updateStateTransitionMatrix(double dt);
-    void updateMeasurementCovarianceMatrix(double var);
-    const NavigationType filter(NavigationType z);
-    const NavigationType filter(NavigationType u, NavigationType z);
-    // transfer estimate to NavigationVector
-    const NavigationType getEstimate();
-    // transfer estimate variances to NavigationVector
-    const NavigationType getEstimateVariance();
-  private:
-    unsigned int    n_;
-    unsigned int    m_;
-    unsigned int    k_;
-    KalmanMultivariate  kalmanFilter_;
+class KalmanFilter {
+    public:
+      /*
+      * Constructor call for a kalman filter
+      * n : dimension of the state
+      * m : dimension of the measurement
+      * k : dimension of control   NOTE: will not be used in this implementation
+      */
+    
+      KalmanFilter(int n, int m, int k = 0);
 
-    // covariance matrix variances
-    static constexpr float kInitialErrorVar = 0.5;
-    static constexpr float kStateTransitionVar = 0.02;
-    static constexpr float kTubeMeasurementVar = 0.001;
-    static constexpr float kElevatorMeasurementVar = 0.12;
-    static constexpr float kStationaryMeasurementVar = 0.04;
+      /*
+      * Constructor call for a kalman filter
+      * x : state
+      * A : Transition Matrix
+      * P : Covariance
+      * Q : Random uncertainty covariacne
+      * H : Measurement Matrix
+      * R : Sensor Noise Covariance
+      */
+      void init(VectorXf x, MatrixXf P, MatrixXf Q, MatrixXf R);
 
-    // create initial error covariance matrix P
-    const MatrixXf createInitialErrorCovarianceMatrix();
+      // set initial state and covariance
+      void set_initial(VectorXf init);  //! Add initial covariance matrix
 
-    // create state transition matrix A
-    const MatrixXf createStateTransitionMatrix(double dt);
+      // get state
+      VectorXf get_state();
 
-    // create measurement matrix H
-    const MatrixXf createMeasurementMatrix();
+      // get covariacne
+      MatrixXf get_covariance();
 
-    // create state transition coveriance matrix Q
-    const MatrixXf createStateTransitionCovarianceMatrix();
+      // filter using 5 KF equations
+      /*
+      * dt : Time interval
+      * s  : state
+      * z  : sensor measurement vector
+      */
+      void filter(float dt, VectorXf s, VectorXf z);  //!! Two variables missing, update this! (real life values) - fixed
 
-    // create measurement covariance matrices R
-    const MatrixXf createTubeMeasurementCovarianceMatrix();
-    const MatrixXf createElevatorMeasurementCovarianceMatrix();
-    const MatrixXf createStationaryMeasurementCovarianceMatrix();
-};
-}}  // namespace hyped navigation
+    public:
+      // f1 : predict state
+      void predict_state();
+      // f2 : estimate state (update based on measurement)
+      void estimate_state(MatrixXf K, VectorXf z);
+      // f3 : kalman gain
+      MatrixXf kalman_gain();
+      // f4 : predict state covariance
+      void predict_covariance();
+      // f5 : estimate state covariance
+      void estimate_covariance(MatrixXf K);
+      // f10 : update state transition;
+      void update_state_transition(float Dt);  //! lowercase d
+      // f11 : update state transition;
+      void update_sensor_noise(MatrixXf R); // Find out - how to update R?
+      // f12 : get data from sensors (may have parameters according to sensors spec)
+      //       Will set the measurement vector
+      // Vector get_data();
+      // f13 : get measurement
+      void set_measurement(VectorXf z);
+      // f14 : get measurement
+      VectorXf get_measurement();
+      // Setting Matrix H;
+      MatrixXf set_measurement_matrix();
 
+
+
+      int n_;
+      int m_;
+      int k_;
+
+      VectorXf x_;  // current state (n x 1)
+      VectorXf z_;  // measurement (m x 1)
+      MatrixXf A_;  // state transition matrix (n x n)
+      MatrixXf P_;  // state covariance matrix (n x n)
+      MatrixXf Q_;  // state covariance noise matrix (n x n)
+      MatrixXf H_;  // dimension change matrix (m x n)
+      MatrixXf R_;  // measurement noise matrix (m x m)
+      MatrixXf I_;  // identity matrix (n x n)
+
+  };
+  
 #endif  // NAVIGATION_KALMAN_FILTER_HPP_

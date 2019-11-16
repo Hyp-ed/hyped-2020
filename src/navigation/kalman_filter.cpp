@@ -27,146 +27,131 @@ constexpr float KalmanFilter::kTubeMeasurementVar;
 constexpr float KalmanFilter::kElevatorMeasurementVar;
 constexpr float KalmanFilter::kStationaryMeasurementVar;
 
-KalmanFilter::KalmanFilter(unsigned int n/*=3*/, unsigned int m/*=1*/, unsigned int k/*=0*/)
-  : n_(n),
-    m_(m),
-    k_(k),
-    kalmanFilter_(KalmanMultivariate(n, m, k))
-{}
+void KalmanFilter::init(VectorXf x, MatrixXf P, MatrixXf Q, MatrixXf R){
+    x_ = x;
+    P_ = P;
+    Q_ = Q;
+    H_ = set_measurement_matrix();
+    R_ = R;
+    I_ = MatrixXf::Identity(n_, n_);
 
-void KalmanFilter::setup()
-{
-  // setup dynamics & measurement models for stationary test
-  MatrixXf A = createStateTransitionMatrix(0.0);
-  MatrixXf Q = createStateTransitionCovarianceMatrix();
-  MatrixXf H = createMeasurementMatrix();
+    //creating the init MatrixXf. Find a way to add this to the MatrixXf_lib as a method and not allow the user to assign a new value to it.
 
-  // check system navigation run for R setup
-  System &sys = System::getSystem();
-  MatrixXf R = MatrixXf::Zero(m_, m_);;
-  if (sys.tube_run || sys.outside_run) R = createTubeMeasurementCovarianceMatrix();
-  else if (sys.elevator_run) R = createElevatorMeasurementCovarianceMatrix();
-  else if (sys.stationary_run) R = createStationaryMeasurementCovarianceMatrix();
-
-  kalmanFilter_.setModels(A, Q, H, R);
-
-  // setup initial estimates
-  VectorXf x = VectorXf::Zero(n_);
-  MatrixXf P = createInitialErrorCovarianceMatrix();
-  kalmanFilter_.setInitial(x, P);
+    //creating the init MatrixXf. Find a way to add this to the MatrixXf_lib as a method and not allow the user to assign a new value to it.
 }
 
-void KalmanFilter::updateStateTransitionMatrix(double dt)
-{
-  MatrixXf A = createStateTransitionMatrix(dt);
-  kalmanFilter_.updateA(A);
+KalmanFilter::KalmanFilter(int n, int m, int k)
+    : n_(n)
+    , m_(m)
+    , k_(k){
+
+    z_.resize(m);
+    x_.resize(n);
+    A_.resize(n,n);
+    P_.resize(n,n);
+    Q_.resize(n,n);
+    R_.resize(m,m);
+    I_.resize(n,n);
+    H_.resize(m,n);
 }
 
-void KalmanFilter::updateMeasurementCovarianceMatrix(double var)
-{
-  MatrixXf R = MatrixXf::Constant(m_, m_, var);
-  kalmanFilter_.updateR(R);
+void KalmanFilter::set_initial(VectorXf init){
+    x_ =  init;
 }
 
-const NavigationType KalmanFilter::filter(NavigationType z)
+MatrixXf KalmanFilter::set_measurement_matrix()
 {
-  VectorXf vz(m_);
-  vz(0) = z;
-  kalmanFilter_.filter(vz);
+    MatrixXf H(m_, n_);
+    H = MatrixXf::Zero(m_,n_);
 
-  NavigationType estimate = getEstimate();
-  return estimate;
+    for(int i = 0; i < m_; i++)
+    {
+        H(i, n_ - m_ + i) = 1;
+    }
+
+    return H;
 }
 
-const NavigationType KalmanFilter::filter(NavigationType u, NavigationType z)
-{
-  VectorXf vu(k_);
-  vu(0) = u;
-
-  VectorXf vz(m_);
-  vz(0) = z;
-
-  kalmanFilter_.filter(vu, vz);
-
-  NavigationType estimate = getEstimate();
-  return estimate;
+VectorXf KalmanFilter::get_state(){
+    return x_;
 }
 
-const MatrixXf KalmanFilter::createInitialErrorCovarianceMatrix()
-{
-  MatrixXf P = MatrixXf::Constant(n_, n_, kInitialErrorVar);
-  return P;
+MatrixXf KalmanFilter::get_covariance(){
+    return P_;
 }
 
-const MatrixXf KalmanFilter::createStateTransitionMatrix(double dt)
-{
-  MatrixXf A = MatrixXf::Zero(n_, n_);
-  double acc_ddt = 0.5 * dt * dt;
-  //  number of values for each acc, vel, pos: usually 1 or 3
-  unsigned int n_val = n_ / 3;
-
-  for (unsigned int i = 0; i < n_val; i++) {
-      // compute acc rows
-      A(i, i) = 1.;
-
-      // compute vel rows
-      A(i + n_val, i) = dt;
-      A(i + n_val, i + n_val) = 1.;
-
-      // compute pos rows
-      A(i + 2 * n_val, i) = acc_ddt;
-      A(i + 2 * n_val, i + n_val) = dt;
-      A(i + 2 * n_val, i + 2 * n_val) = 1.;
-  }
-  A(0, 0) = 1.0;
-
-  return A;
+VectorXf KalmanFilter::get_measurement(){
+    return z_;
 }
 
-const MatrixXf KalmanFilter::createMeasurementMatrix()
-{
-  MatrixXf H = MatrixXf::Zero(m_, n_);
-  for (unsigned int i = 0; i < m_; i++) {
-    H(i, i) = 1.;
-  }
-  return H;
+void KalmanFilter::update_sensor_noise(MatrixXf R){
+
+    //some sort of calclulation take place here.
+
+    R_ = R;
 }
 
-const MatrixXf KalmanFilter::createStateTransitionCovarianceMatrix()
-{
-  MatrixXf Q = MatrixXf::Constant(n_, n_, kStateTransitionVar);
-  return Q;
+void KalmanFilter::filter(float dt, VectorXf s, VectorXf z){
+    
+    KalmanFilter::update_state_transition(dt);
+
+    KalmanFilter::predict_state();
+    KalmanFilter::predict_covariance();
+
+    MatrixXf K(n_, n_);
+    K = KalmanFilter::kalman_gain();
+
+    // KalmanFilter::get_data(); // manipulate sensor data and set measurement VectorXf
+
+    KalmanFilter::estimate_state(K,z);
+    KalmanFilter::estimate_covariance(K);
+
 }
 
-const MatrixXf KalmanFilter::createTubeMeasurementCovarianceMatrix()
-{
-    MatrixXf R = MatrixXf::Constant(m_, m_, kTubeMeasurementVar);
-    return R;
-}
-const MatrixXf KalmanFilter::createElevatorMeasurementCovarianceMatrix()
-{
-  MatrixXf R = MatrixXf::Constant(m_, m_, kElevatorMeasurementVar);
-  return R;
+void KalmanFilter::predict_state(){
+    x_ = A_ * x_;
 }
 
-const MatrixXf KalmanFilter::createStationaryMeasurementCovarianceMatrix()
-{
-  MatrixXf R = MatrixXf::Constant(m_, m_, kStationaryMeasurementVar);
-  return R;
+void KalmanFilter::predict_covariance(){
+    P_ = A_ * P_ * A_.transpose() + Q_;
 }
 
-const NavigationType KalmanFilter::getEstimate()
-{
-  VectorXf x = kalmanFilter_.getStateEstimate();
-  NavigationType est = x(0);
-  return est;
+MatrixXf KalmanFilter::kalman_gain(){
+    MatrixXf K(n_, m_);
+    K = (P_ * H_.transpose()) * (H_ * P_ * H_.transpose() + R_).inverse();
+    return K;
 }
 
-const NavigationType KalmanFilter::getEstimateVariance()
-{
-  MatrixXf P = kalmanFilter_.getStateCovariance();
-  NavigationType var = P(0, 0);
-  return var;
+void KalmanFilter::estimate_state(MatrixXf K, VectorXf z){
+    x_ = x_ + K * (z - H_ * x_);
+}
+
+void KalmanFilter::estimate_covariance(MatrixXf K){
+    P_ = (I_ - K * H_) * P_;
+}
+
+void KalmanFilter::update_state_transition(float dt){
+
+    MatrixXf A(n_, n_);
+    A = MatrixXf::Zero(n_,n_);
+
+    VectorXf s (n_);
+    s << 1.0, dt, dt*dt/2; // {displacement, velocity, acceleration placeholders}
+
+    for(int i = 0; i < n_; i++)
+    {
+        for(int j = i; j < n_; j++)
+        {
+            if ((j - i) % m_ == 0){
+                A(i, j) = s((j - i)/m_);
+            }
+        }
+    }
+    A_ = A;
+}
+
+void KalmanFilter::set_measurement(VectorXf z){
+    z_ = z;
 }
 
 }}  // namespace hyped navigation
