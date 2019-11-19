@@ -51,7 +51,7 @@ int main(int argc, char* argv[])
   /* Logger log_tlm(sys.verbose_tlm, sys.debug_tlm); */
 
   // print HYPED logo at system startup
-  std::ifstream file("main_logo.txt");
+  std::ifstream file("utils/main_logo.txt");
   if (file.is_open()) {
     std::string line;
     while (getline(file, line)) {
