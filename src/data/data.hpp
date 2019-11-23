@@ -49,7 +49,6 @@ enum class ModuleStatus {
 struct Module {
   ModuleStatus module_status = ModuleStatus::kStart;
 };
-
 // -------------------------------------------------------------------------------------------------
 // Navigation
 // -------------------------------------------------------------------------------------------------
@@ -59,7 +58,7 @@ struct Navigation : public Module {
   NavigationType  distance;  // m
   NavigationType  velocity;  // m/s
   NavigationType  acceleration;  // m/s^2
-  NavigationType emergency_braking_distance;
+  NavigationType  emergency_braking_distance;
   NavigationType  braking_distance = 750;  // m
 };
 
@@ -85,25 +84,30 @@ struct TemperatureData : public Sensor {
 struct Sensors : public Module {
   static constexpr int kNumImus = 4;
   static constexpr int kNumKeyence = 2;
+  static constexpr int kFIFO;
+  
+  vector<NavigationVector> imu_vector(kFIFO);
 
   DataPoint<array<ImuData, kNumImus>> imu;
   array<StripeCounter, kNumKeyence>  keyence_stripe_counter;
 };
 
 struct BatteryData {
-  static constexpr int kNumCells = 36;
-  uint16_t  voltage;                    // dV
-  int16_t   current;                    // dA
-  uint8_t   charge;                     // %
-  int8_t    average_temperature;        // C
+  uint16_t             voltage;                    // dV
+  uint16_t             current;                    // dA
+  uint16_t             charge;                     // %
+  uint16_t             average_temperature;        // C
+};
 
+struct HPBatteryData : public BatteryData {
   // below only for BMSHP! Value for BMSLP = 0
-  uint16_t  cell_voltage[kNumCells];    // mV
-  int8_t    low_temperature;            // C
-  int8_t    high_temperature;           // C
-  uint16_t  low_voltage_cell;           // mV
-  uint16_t  high_voltage_cell;          // mV
-  bool      imd_fault;
+  static constexpr int kNumCells = 36;
+  uint16_t             hp_high_temperature;        // C
+  uint16_t             hp_low_temperature;         // C
+  uint16_t             hp_cell_voltage[kNumCells]; // mV
+  uint16_t             hp_high_voltage_cell;       // mV
+  uint16_t             hp_low_voltage_cell;        // mV
+  bool                 hp_imd_fault;
 };
 
 struct Batteries : public Module {
@@ -111,7 +115,7 @@ struct Batteries : public Module {
   static constexpr int kNumHPBatteries = 2;
 
   array<BatteryData, kNumLPBatteries> low_power_batteries;
-  array<BatteryData, kNumHPBatteries> high_power_batteries;
+  array<HPBatteryData, kNumHPBatteries> high_power_batteries;
 };
 
 struct EmergencyBrakes : public Module {
@@ -247,7 +251,7 @@ class Data {
    * @brief      Retrieves data from the batteries.
    */
   Batteries getBatteriesData();
-
+  
   /**
    * @brief      Should be called to update battery data
    */
