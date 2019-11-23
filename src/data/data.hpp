@@ -20,6 +20,7 @@
 #ifndef DATA_DATA_HPP_
 #define DATA_DATA_HPP_
 
+#include <vector>
 #include <cstdint>
 #include <array>
 #include "utils/math/vector.hpp"
@@ -49,6 +50,7 @@ enum class ModuleStatus {
 struct Module {
   ModuleStatus module_status = ModuleStatus::kStart;
 };
+
 // -------------------------------------------------------------------------------------------------
 // Navigation
 // -------------------------------------------------------------------------------------------------
@@ -84,9 +86,9 @@ struct TemperatureData : public Sensor {
 struct Sensors : public Module {
   static constexpr int kNumImus = 4;
   static constexpr int kNumKeyence = 2;
-  static constexpr int kFIFO;
+  static constexpr int kFIFO = 1;
   
-  vector<NavigationVector> imu_vector(kFIFO);
+  std::vector<NavigationVector> imu_vector = std::vector<NavigationVector>(kFIFO);
 
   DataPoint<array<ImuData, kNumImus>> imu;
   array<StripeCounter, kNumKeyence>  keyence_stripe_counter;
@@ -101,13 +103,13 @@ struct BatteryData {
 
 struct HPBatteryData : public BatteryData {
   // below only for BMSHP! Value for BMSLP = 0
-  static constexpr int kNumCells = 36;
-  uint16_t             hp_high_temperature;        // C
-  uint16_t             hp_low_temperature;         // C
-  uint16_t             hp_cell_voltage[kNumCells]; // mV
-  uint16_t             hp_high_voltage_cell;       // mV
-  uint16_t             hp_low_voltage_cell;        // mV
-  bool                 hp_imd_fault;
+  static constexpr int      kNumCells = 36;
+  uint16_t                  hp_high_temperature;        // C
+  uint16_t                  hp_low_temperature;         // C
+  array<uint16_t,KnumCells> hp_cell_voltage; // mV
+  uint16_t                  hp_high_voltage_cell;       // mV
+  uint16_t                  hp_low_voltage_cell;        // mV
+  bool                      hp_imd_fault;
 };
 
 struct Batteries : public Module {
