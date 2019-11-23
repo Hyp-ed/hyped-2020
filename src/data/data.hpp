@@ -106,7 +106,7 @@ struct HPBatteryData : public BatteryData {
   static constexpr int      kNumCells = 36;
   uint16_t                  hp_high_temperature;        // C
   uint16_t                  hp_low_temperature;         // C
-  array<uint16_t,KnumCells> hp_cell_voltage; // mV
+  array<uint16_t,kNumCells> hp_cell_voltage; // mV
   uint16_t                  hp_high_voltage_cell;       // mV
   uint16_t                  hp_low_voltage_cell;        // mV
   bool                      hp_imd_fault;
