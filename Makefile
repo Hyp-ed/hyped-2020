@@ -67,7 +67,7 @@ Echo := $(Verb)echo
 
 default: lint $(TARGET)
 
-$(TARGET): $(DEPENDENCIES) | $(OBJS) $(MAIN_OBJ)
+$(TARGET): $(OBJS) $(MAIN_OBJ)
 	$(Echo) "Linking executable $(MAIN) into $@"
 	$(Verb) $(LL)  -o $@ $(OBJS) $(MAIN_OBJ) $(LFLAGS)
 
@@ -80,15 +80,13 @@ else
 	$(Verb) $(CC) $(DEPFLAGS_RELEASE) $(CFLAGS) -o $@ -c $(INC_DIR) $<
 endif
 
-all-objects: $(EIGEN) | $(OBJS)
-
-$(OBJS): $(OBJS_RELEASE_DIR)/%.o: $(SRCS_DIR)/%.cpp
+$(OBJS): $(OBJS_RELEASE_DIR)/%.o: $(SRCS_DIR)/%.cpp $(DEPENDENCIES)
 	$(Echo) "Compiling $<"
 	$(Verb) mkdir -p $(dir $@)
-	$(Verb) $(CC) $(DEPFLAGS_RELEASE) $(CFLAGS) -o $@ -c $(INC_DIR) $< 
+	$(Verb) $(CC) $(DEPFLAGS_RELEASE) $(CFLAGS) -o $@ -c $(INC_DIR) $<
 
 
-$(TEST_OBJS): $(OBJS_DEBUG_DIR)/%.o: $(SRCS_DIR)/%.cpp
+$(TEST_OBJS): $(OBJS_DEBUG_DIR)/%.o: $(SRCS_DIR)/%.cpp $(DEPENDENCIES)
 		$(Echo) "Compiling $<"
 		$(Verb) mkdir -p $(dir $@)
 		$(Verb) $(CC) $(DEPFLAGS_DEBUG) $(CFLAGS) -o $@ -c $(INC_DIR) $< ${COVERAGE_FLAGS}
