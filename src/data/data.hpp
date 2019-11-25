@@ -20,7 +20,6 @@
 #ifndef DATA_DATA_HPP_
 #define DATA_DATA_HPP_
 
-#include <vector>
 #include <cstdint>
 #include <array>
 #include "utils/math/vector.hpp"
@@ -86,9 +85,9 @@ struct TemperatureData : public Sensor {
 struct Sensors : public Module {
   static constexpr int kNumImus = 4;
   static constexpr int kNumKeyence = 2;
-  static constexpr int kFIFO = 1;
+  static constexpr int kFIFO = 85;
   
-  std::vector<NavigationVector> imu_vector = std::vector<NavigationVector>(kFIFO);
+  array<ImuData, kFIFO> data_array;
 
   DataPoint<array<ImuData, kNumImus>> imu;
   array<StripeCounter, kNumKeyence>  keyence_stripe_counter;

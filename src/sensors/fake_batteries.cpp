@@ -81,11 +81,11 @@ void FakeBatteries::getData(BatteryData* battery)
   battery->voltage              = local_data_.voltage;
   battery->current              = local_data_.current;
   battery->charge               = local_data_.charge;
-  battery->low_temperature      = local_data_.low_temperature;  // 0 for LP
+  // battery->hp_low_temperature      = local_data_.hp_low_temperature;  // 0 for LP
   battery->average_temperature  = local_data_.average_temperature;
-  battery->high_temperature     = local_data_.high_temperature;  // 0 for LP
-  battery->low_voltage_cell     = local_data_.low_voltage_cell;  // 0 for LP
-  battery->high_voltage_cell    = local_data_.high_voltage_cell;  // 0 for LP
+  // battery->hp_high_temperature     = local_data_.hp_high_temperature;  // 0 for LP
+  // battery->hp_low_voltage_cell     = local_data_.hp_low_voltage_cell;  // 0 for LP
+  // battery->hp_high_voltage_cell    = local_data_.hp_high_voltage_cell;  // 0 for LP
 }
 
 void FakeBatteries::checkFailure()
@@ -104,11 +104,11 @@ void FakeBatteries::updateBatteryData()
   local_data_.voltage             = cases_[case_index_][0];
   local_data_.current             = cases_[case_index_][1];
   local_data_.charge              = cases_[case_index_][2];
-  local_data_.low_temperature     = cases_[case_index_][3];
+  local_data_.hp_low_temperature     = cases_[case_index_][3];
   local_data_.average_temperature = cases_[case_index_][4];
-  local_data_.high_temperature    = cases_[case_index_][5];
-  local_data_.low_voltage_cell    = cases_[case_index_][6];
-  local_data_.high_voltage_cell   = cases_[case_index_][7];
+  local_data_.hp_high_temperature    = cases_[case_index_][5];
+  local_data_.hp_low_voltage_cell    = cases_[case_index_][6];
+  local_data_.hp_high_voltage_cell   = cases_[case_index_][7];
 }
 
 bool FakeBatteries::isOnline()

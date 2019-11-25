@@ -169,7 +169,7 @@ class BMSHP : public CanProccesor, public BMSInterface {
   uint16_t        can_id_;            // CAN id to be used
   uint64_t        thermistor_id_;     // thermistor expansion module CAN id
   uint16_t        cell_id_;           // broadcast message ID
-  BatteryData     local_data_;        // stores values from CAN
+  data::HPBatteryData     local_data_;        // stores values from CAN
   uint64_t        last_update_time_;  // stores arrival time of CAN message
   // for making sure only one object per BMS unit exist
   static std::vector<uint16_t> existing_ids_;

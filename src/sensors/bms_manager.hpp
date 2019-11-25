@@ -49,21 +49,6 @@ class BmsManager: public ManagerInterface  {
   utils::System&  sys_;
 
   /**
-   * @brief for hp_master_, hp_ssr_, and prop_cool_
-   */
-  void clearHP();
-
-  /**
-   * @brief for hp_master_, hp_ssr_, and prop_cool_
-   */
-  void setHP();
-
-  /**
-   * @brief check IMD and set GPIOs accordingly
-   */
-  bool checkIMD();
-
-  /**
    * @brief needs to be references because run() passes directly to data struct
    */
   data::Data&     data_;

@@ -81,7 +81,7 @@ class FakeBatteries : public BMSInterface {
   bool is_fail_;
   int case_index_;    // handle for array of values for both hp/lp
 
-  BatteryData local_data_;
+  data::HPBatteryData local_data_;
 
   uint64_t acc_start_time_;
   bool acc_started_;
