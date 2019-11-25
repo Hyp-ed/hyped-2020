@@ -36,4 +36,3 @@ binmain.o
 
 # libraries
 lib/Eigen
-lib/rapidjson

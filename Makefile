@@ -16,9 +16,8 @@ include utils/config.mk
 
 # libaries for generating TARGET
 EIGEN=$(LIBS_DIR)/Eigen
-RAPIDJSON=$(LIBS_DIR)/rapidjson
 GITHOOKS=.git/hooks
-DEPENDENCIES=$(EIGEN) $(RAPIDJSON) $(GITHOOKS)
+DEPENDENCIES=$(EIGEN) $(GITHOOKS)
 
 ifeq ($(CROSS), 0)
 	ifneq ($(UNAME),Linux)
@@ -46,7 +45,8 @@ endif
 LL:=$(CC)
 
 # auto-discover all sources
-SRCS := $(shell find $(SRCS_DIR) -name '*.cpp')
+# TODO: include telemetry once protobuf dependency removed
+SRCS := $(shell find $(SRCS_DIR) -name '*.cpp'  -not -path 'src/telemetry/*')
 OBJS := $(patsubst $(SRCS_DIR)%.cpp,$(OBJS_RELEASE_DIR)%.o,$(SRCS))
 TEST_OBJS :=  $(patsubst $(SRCS_DIR)%.cpp,$(OBJS_DEBUG_DIR)%.o,$(SRCS))
 MAIN_OBJ := $(patsubst run/%.cpp, $(OBJS_RELEASE_DIR)/%.o, $(MAIN))
@@ -109,7 +109,7 @@ testrunner: test/lib/libtest.a
 coverage: testrunner
 	$(Verb) ./test/utils/get_code_cov.sh
 
-test/lib/libtest.a:  $(EIGEN) $(RAPIDJSON) $(TEST_OBJS)
+test/lib/libtest.a:  $(EIGEN) $(TEST_OBJS)
 	$(Echo) "Making library"
 	$(Verb) ar -cvq $@ $(TEST_OBJS) > /dev/null
 
@@ -138,12 +138,6 @@ doc:
 # Re-install eigen library if the tar file changes
 $(EIGEN): $(EIGEN).tar.gz
 	$(Echo) Unpacking Eigen library $@
-	$(Verb) tar -zxvf $@.tar.gz -C lib > /dev/null
-	$(Verb) touch $@
-
-# Re-install rapidjson library if the tar file changes
-$(RAPIDJSON): $(RAPIDJSON).tar.gz
-	$(Echo) Unpacking RapidJSON library $@
 	$(Verb) tar -zxvf $@.tar.gz -C lib > /dev/null
 	$(Verb) touch $@
 
