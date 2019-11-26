@@ -50,15 +50,19 @@ FakeImu::FakeImu(utils::Logger& log,
       noise_(noise),
       data_(data::Data::getInstance())
 {
-  acc_fail_[0] = -37.3942;
-  acc_fail_[1] = 0;
-  acc_fail_[2] = 9.8;
-  acc_zero_[0] = 0;
-  acc_zero_[1] = 0;
-  acc_zero_[2] = 0;
+  acc_fail_.acc[0] = -37.3942;
+  acc_fail_.acc[1] = 0;
+  acc_fail_.acc[2] = 9.8;
+  acc_fail_.operational = true;
+  acc_zero_.acc[0] = 0;
+  acc_zero_.acc[1] = 0;
+  acc_zero_.acc[2] = 9.8;
+  acc_zero_.operational = true;
 
   readDataFromFile(acc_file_path, dec_file_path, em_file_path);
-  // TODO(anyone): log messages
+  if(failure_happened_) {
+    // write log messages
+  } 
   
 }
 
@@ -83,6 +87,7 @@ void FakeImu::getData(ImuData* data)
     case State::kAccelerating: state = 1;
     case State::kNominalBraking: state = 2;
     case State::kEmergencyBraking: state = 2;
+    ref_time_ = utils::Timer::getTimeMicros();
   }
   ImuData file_data = getAccValue(state);
   data = &file_data;
@@ -92,6 +97,25 @@ void FakeImu::getData(ImuData* data)
 ImuData FakeImu::getAccValue(int state)
 {
   // read from vector the current acc value given reference time
+  
+  // iterate through timestamp vector to find correct time
+  // get index and return acc value of that index in acc vector
+  ImuData return_data;
+
+  uint32_t current_time = utils::Timer::getTimeMicros();      // 
+
+  bool is_time = false;
+  while(!is_time) {
+    uint32_t vector_time = 0; // TODO(anyone): get vector time here!!!!
+    if (current_time - ref_time_ >= vector_time) {
+      // TODO(anyone): set return_data with data from vector given the index
+    } 
+
+  }
+  // convert vector into ImuData datatype
+  
+
+  
 }
 
 
@@ -113,25 +137,25 @@ void FakeImu::readDataFromFile(std::string acc_file_path,
 {
   for (int i = 0; i < 3; i++) {
     std::string file_path;
-    uint32_t timestamp;
+    std::vector<uint32_t>* timestamp;
     std::vector<NavigationVector>* val_read;
     std::vector<bool>* bool_read;
 
     if (i == 0) {
       file_path = acc_file_path;
-      timestamp = kAccTimeInterval;
+      timestamp = &acc_val_time_;
       val_read  = &acc_val_read_;
-      bool_read = &acc_val_operational_;
+      // bool_read = &acc_val_operational_;
     } else if (i == 1) {
       file_path = dec_file_path;
-      timestamp = kAccTimeInterval;
+      timestamp = &dec_val_time_;
       val_read  = &dec_val_read_;
-      bool_read = &dec_val_operational_;
+      // bool_read = &dec_val_operational_;
     } else if (i == 2) {
       file_path = em_file_path;
-      timestamp = kAccTimeInterval;
+      timestamp = &em_val_time_;
       val_read  = &em_val_read_;
-      bool_read = &em_val_operational_;
+      // bool_read = &em_val_operational_;
     }
     std::ifstream file;
     file.open(file_path);
@@ -148,10 +172,7 @@ void FakeImu::readDataFromFile(std::string acc_file_path,
       std::stringstream input(line);
       input >> temp_time;
 
-      // checks whether timestamp format matches refresh rate
-      if (temp_time != timestamp*counter) {
-        log_.ERR("Fake-IMU", "Timestamp format invalid %d", temp_time);
-      }
+      timestamp->push_back(temp_time);
 
       input >> value[0];
       value[1] = 0.0;
@@ -162,6 +183,7 @@ void FakeImu::readDataFromFile(std::string acc_file_path,
 
       counter++;
     }
+
 
     file.close();
   }

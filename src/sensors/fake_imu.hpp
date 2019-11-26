@@ -104,8 +104,8 @@ class FakeImu : public ImuInterface {
   bool accCheckTime();
 
   
-  NavigationVector acc_fail_;
-  NavigationVector acc_zero_;
+  ImuData acc_fail_;
+  ImuData acc_zero_;
 
 
   /**
@@ -113,11 +113,11 @@ class FakeImu : public ImuInterface {
    * 
    */
   std::vector<NavigationVector> acc_val_read_;
-  std::vector<bool>             acc_val_operational_;
+  std::vector<uint32_t>         acc_val_time_;
   std::vector<NavigationVector> dec_val_read_;
-  std::vector<bool>             dec_val_operational_;
+  std::vector<uint32_t>         dec_val_time_;
   std::vector<NavigationVector> em_val_read_;
-  std::vector<bool>             em_val_operational_;
+  std::vector<uint32_t>         em_val_time_;
 
 
   /**
