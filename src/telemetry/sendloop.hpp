@@ -50,8 +50,9 @@ class SendLoop: public Thread {
     template<std::size_t SIZE>
     void packLpBatteryDataMessage(Writer<StringBuffer>& writer, std::array<data::BatteryData, SIZE>& battery_data_array); // NOLINT
     template<std::size_t SIZE>
-    void packHpBatteryDataMessage(Writer<StringBuffer>& writer, std::array<data::BatteryData, SIZE>& battery_data_array); // NOLINT
-    void packBatteryDataMessageHelper(bool HP, Writer<StringBuffer>& writer, data::BatteryData& battery_data); // NOLINT
+    void packHpBatteryDataMessage(Writer<StringBuffer>& writer, std::array<data::HPBatteryData, SIZE>& battery_data_array); // NOLINT
+    void packLPBatteryDataMessageHelper(Writer<StringBuffer>& writer, data::BatteryData& battery_data); // NOLINT
+    void packHPBatteryDataMessageHelper(Writer<StringBuffer>& writer, data::HPBatteryData& battery_data); // NOLINT
     void packSensorsMessage(Writer<StringBuffer>& writer);
     void packTemperatureMessage(Writer<StringBuffer>& writer);
     void packEmergencyBrakesMessage(Writer<StringBuffer>& writer);

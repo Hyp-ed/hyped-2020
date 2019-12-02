@@ -123,22 +123,22 @@ void SendLoop::packLpBatteryDataMessage(Writer<StringBuffer>& writer, std::array
 {
   writer.StartArray();
   for (auto battery_data : battery_data_array) {
-    packBatteryDataMessageHelper(false, writer, battery_data);
+    packLPBatteryDataMessageHelper(writer, battery_data);
   }
   writer.EndArray();
 }
 
 template<std::size_t SIZE>
-void SendLoop::packHpBatteryDataMessage(Writer<StringBuffer>& writer, std::array<data::BatteryData, SIZE>& battery_data_array) // NOLINT
+void SendLoop::packHpBatteryDataMessage(Writer<StringBuffer>& writer, std::array<data::HPBatteryData, SIZE>& battery_data_array) // NOLINT
 {
   writer.StartArray();
   for (auto battery_data : battery_data_array) {
-    packBatteryDataMessageHelper(true, writer, battery_data);
+    packHPBatteryDataMessageHelper(writer, battery_data);
   }
   writer.EndArray();
 }
 
-void SendLoop::packBatteryDataMessageHelper(bool HP, Writer<StringBuffer>& writer, data::BatteryData& battery_data) // NOLINT
+void SendLoop::packLPBatteryDataMessageHelper(Writer<StringBuffer>& writer, data::BatteryData& battery_data) // NOLINT
 {
   writer.StartObject();
   writer.Key("voltage");
@@ -150,20 +150,42 @@ void SendLoop::packBatteryDataMessageHelper(bool HP, Writer<StringBuffer>& write
   writer.Key("averageTemperature");
   writer.Int(battery_data.average_temperature);
 
-  if (HP) {
-    writer.Key("lowTemperature");
-    writer.Int(battery_data.low_temperature);
-    writer.Key("highTemperature");
-    writer.Int(battery_data.high_temperature);
-    writer.Key("lowVoltageCell");
-    writer.Int(battery_data.low_voltage_cell);
-    writer.Key("highVoltageCell");
-    writer.Int(battery_data.high_voltage_cell);
-  }
+  writer.Key("indvVoltage");
+  writer.StartArray();
+  // This data no longer exists for LP Batteries
+  // for (int voltage : battery_data.cell_voltage) {
+  //   writer.Int(voltage);
+  // }
+  writer.EndArray();
+  writer.EndObject();
+}
+
+void SendLoop::packHPBatteryDataMessageHelper(Writer<StringBuffer>& writer, data::HPBatteryData& battery_data) // NOLINT
+{
+  writer.StartObject();
+  writer.Key("voltage");
+  writer.Int(battery_data.voltage);
+  writer.Key("current");
+  writer.Int(battery_data.current);
+  writer.Key("charge");
+  writer.Int(battery_data.charge);
+  writer.Key("averageTemperature");
+  writer.Int(battery_data.average_temperature);
+
+  //HP specific Data to send
+  writer.Key("lowTemperature");
+  writer.Int(battery_data.hp_low_temperature);
+  writer.Key("highTemperature");
+  writer.Int(battery_data.hp_high_temperature);
+  writer.Key("lowVoltageCell");
+  writer.Int(battery_data.hp_low_voltage_cell);
+  writer.Key("highVoltageCell");
+  writer.Int(battery_data.hp_high_voltage_cell);
+
 
   writer.Key("indvVoltage");
   writer.StartArray();
-  for (int voltage : battery_data.cell_voltage) {
+  for (int voltage : battery_data.hp_cell_voltage) {
     writer.Int(voltage);
   }
   writer.EndArray();
