@@ -16,8 +16,9 @@ include utils/config.mk
 
 # libaries for generating TARGET
 EIGEN=$(LIBS_DIR)/Eigen
+RAPIDJSON=$(LIBS_DIR)/rapidjson
 GITHOOKS=.git/hooks
-DEPENDENCIES=$(EIGEN) $(GITHOOKS)
+DEPENDENCIES=$(EIGEN) $(RAPIDJSON) $(GITHOOKS)
 
 ifeq ($(CROSS), 0)
 	ifneq ($(UNAME),Linux)
@@ -45,8 +46,7 @@ endif
 LL:=$(CC)
 
 # auto-discover all sources
-# TODO: include telemetry once protobuf dependency removed
-SRCS := $(shell find $(SRCS_DIR) -name '*.cpp'  -not -path 'src/telemetry/*')
+SRCS := $(shell find $(SRCS_DIR) -name '*.cpp')
 OBJS := $(patsubst $(SRCS_DIR)%.cpp,$(OBJS_RELEASE_DIR)%.o,$(SRCS))
 TEST_OBJS :=  $(patsubst $(SRCS_DIR)%.cpp,$(OBJS_DEBUG_DIR)%.o,$(SRCS))
 MAIN_OBJ := $(patsubst run/%.cpp, $(OBJS_RELEASE_DIR)/%.o, $(MAIN))
@@ -67,7 +67,7 @@ Echo := $(Verb)echo
 
 default: lint $(TARGET)
 
-$(TARGET): $(DEPENDENCIES) | $(OBJS) $(MAIN_OBJ)
+$(TARGET): $(OBJS) $(MAIN_OBJ)
 	$(Echo) "Linking executable $(MAIN) into $@"
 	$(Verb) $(LL)  -o $@ $(OBJS) $(MAIN_OBJ) $(LFLAGS)
 
@@ -80,15 +80,13 @@ else
 	$(Verb) $(CC) $(DEPFLAGS_RELEASE) $(CFLAGS) -o $@ -c $(INC_DIR) $<
 endif
 
-all-objects: $(EIGEN) | $(OBJS)
-
-$(OBJS): $(OBJS_RELEASE_DIR)/%.o: $(SRCS_DIR)/%.cpp
+$(OBJS): $(OBJS_RELEASE_DIR)/%.o: $(SRCS_DIR)/%.cpp $(DEPENDENCIES)
 	$(Echo) "Compiling $<"
 	$(Verb) mkdir -p $(dir $@)
-	$(Verb) $(CC) $(DEPFLAGS_RELEASE) $(CFLAGS) -o $@ -c $(INC_DIR) $< 
+	$(Verb) $(CC) $(DEPFLAGS_RELEASE) $(CFLAGS) -o $@ -c $(INC_DIR) $<
 
 
-$(TEST_OBJS): $(OBJS_DEBUG_DIR)/%.o: $(SRCS_DIR)/%.cpp
+$(TEST_OBJS): $(OBJS_DEBUG_DIR)/%.o: $(SRCS_DIR)/%.cpp $(DEPENDENCIES)
 		$(Echo) "Compiling $<"
 		$(Verb) mkdir -p $(dir $@)
 		$(Verb) $(CC) $(DEPFLAGS_DEBUG) $(CFLAGS) -o $@ -c $(INC_DIR) $< ${COVERAGE_FLAGS}
@@ -111,9 +109,9 @@ testrunner: test/lib/libtest.a
 coverage: testrunner
 	$(Verb) ./test/utils/get_code_cov.sh
 
-test/lib/libtest.a:  $(EIGEN) $(TEST_OBJS)
+test/lib/libtest.a:  $(EIGEN) $(RAPIDJSON) $(TEST_OBJS)
 	$(Echo) "Making library"
-	$(Verb) ar -cvq $@ $(TEST_OBJS) > /dev/null
+	$(Verb) ar -cvr $@ $(TEST_OBJS) > /dev/null
 
 clean-all: cleanlint cleantest clean
 
@@ -140,6 +138,12 @@ doc:
 # Re-install eigen library if the tar file changes
 $(EIGEN): $(EIGEN).tar.gz
 	$(Echo) Unpacking Eigen library $@
+	$(Verb) tar -zxvf $@.tar.gz -C lib > /dev/null
+	$(Verb) touch $@
+
+# Re-install rapidjson library if the tar file changes
+$(RAPIDJSON): $(RAPIDJSON).tar.gz
+	$(Echo) Unpacking RapidJSON library $@
 	$(Verb) tar -zxvf $@.tar.gz -C lib > /dev/null
 	$(Verb) touch $@
 
