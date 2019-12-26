@@ -51,14 +51,14 @@ ImuManager::ImuManager(Logger& log)
   } else if (sys_.fake_imu_fail) {
     for (int i = 0; i < data::Sensors::kNumImus; i++) {
       // change params to fail in kAcccelerating or kNominalBraking states
-      imu_[i] = new FakeImuFromFile(log,
+      imu_[i] = new FakeImu(log,
                                     "data/in/acc_state.txt",
                                     "data/in/decel_state.txt",
                                     "data/in/decel_state.txt", (i%2 == 0), false);
     }
   } else {
     for (int i = 0; i < data::Sensors::kNumImus; i++) {
-      imu_[i] = new FakeImuFromFile(log,
+      imu_[i] = new FakeImu(log,
                                     "data/in/acc_state.txt",
                                     "data/in/decel_state.txt",
                                     "data/in/decel_state.txt", false, false);
