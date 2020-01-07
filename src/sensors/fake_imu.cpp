@@ -42,28 +42,31 @@ FakeImu::FakeImu(utils::Logger& log,
                 std::string acc_file_path,
                 std::string dec_file_path,
                 std::string em_file_path,
-                bool is_fail,
-                int fail_state,
+                bool is_fail,                     // these from config
+                State fail_state,
                 float noise)
     : log_(log),
       failure_happened_(false),
+      is_fail_(is_fail),
+      fail_state_(fail_state),
       noise_(noise),
       data_(data::Data::getInstance())
 {
   acc_fail_.acc[0] = -37.3942;
   acc_fail_.acc[1] = 0;
   acc_fail_.acc[2] = 9.8;
-  acc_fail_.operational = true;
+  acc_fail_.operational = true;                   // TODO(anyone): confirm with nav
   acc_zero_.acc[0] = 0;
   acc_zero_.acc[1] = 0;
   acc_zero_.acc[2] = 9.8;
   acc_zero_.operational = true;
+  prev_acc_ = &acc_zero_;
 
   readDataFromFile(acc_file_path, dec_file_path, em_file_path);
   if(failure_happened_) {
     // write log messages
-  } 
-  
+  }
+
 }
 
 void FakeImu::setFailure()
@@ -71,7 +74,7 @@ void FakeImu::setFailure()
   // Random point of failure from 0 to 10 seconds
   // Generate a random time for a failure
   failure_time_ = (rand() % 10 + 1) * 1000000;
-  
+
 }
 
 void FakeImu::getData(ImuData* data)
@@ -79,43 +82,76 @@ void FakeImu::getData(ImuData* data)
   // switch statement for states
   // call getAccValue
 
-  int state = -1;
-
+  read_.clear();
+  time_.clear();
   State current_state = data_.getStateMachineData().current_state;
   switch (current_state) {
-    case State::kCalibrating: state = 0;
-    case State::kAccelerating: state = 1;
-    case State::kNominalBraking: state = 2;
-    case State::kEmergencyBraking: state = 2;
+    case State::kAccelerating:
+      read_ = acc_val_read_;
+      time_ = acc_val_time_;
+    case State::kNominalBraking:
+      read_ = dec_val_read_;
+      time_ = dec_val_time_;
+    case State::kEmergencyBraking:
+      read_ = em_val_read_;
+      time_ = em_val_time_;
     ref_time_ = utils::Timer::getTimeMicros();
   }
-  ImuData file_data = getAccValue(state);
-  data = &file_data;
-
+  if (is_fail_) {
+    if (fail_state_ == current_state) is_fail_ = true;
+    else is_fail_ = false;
+  }
+  if (current_state == State::kCalibrating) {        // stationary states
+    data = &acc_zero_;
+  } else {
+    if (accCheckTime()) {
+      ImuData file_data = getAccValue();
+      prev_acc_ = &file_data;
+      data = &file_data;
+    } else {
+      data = prev_acc_;
+    }
+  }
+  // TODO(anyone): fill FIFO with noised values
 }
 
-ImuData FakeImu::getAccValue(int state)
+ImuData FakeImu::getAccValue()
 {
   // read from vector the current acc value given reference time
-  
   // iterate through timestamp vector to find correct time
   // get index and return acc value of that index in acc vector
   ImuData return_data;
 
-  uint32_t current_time = utils::Timer::getTimeMicros();      // 
+  uint32_t current_time = utils::Timer::getTimeMicros();
 
+  uint32_t vector_time;
   bool is_time = false;
-  while(!is_time) {
-    uint32_t vector_time = 0; // TODO(anyone): get vector time here!!!!
+  int count = 0;
+  while (!is_time) {
+    if (count >= read_.size()) {         // last value if out of bounds
+      vector_time = time_[count-1];
+      is_time = true;                    // out of bounds
+    } else {
+      vector_time = time_[count];
+    }
     if (current_time - ref_time_ >= vector_time) {
-      // TODO(anyone): set return_data with data from vector given the index
-    } 
-
+      return_data.operational = true;
+      return_data.acc = read_[count];
+      is_time = true;
+    }
+    count++;
   }
-  // convert vector into ImuData datatype
-  
 
-  
+  if (is_fail_) {
+    if (utils::Timer::getTimeMicros() - ref_time_ >= failure_time_ || failure_happened_) {
+      if (!failure_happened_) {
+        log_.INFO("Fake-IMU", "Start failure...");
+      }
+      return_data = acc_fail_;
+      failure_happened_ = true;
+    }
+  }
+  return return_data;
 }
 
 

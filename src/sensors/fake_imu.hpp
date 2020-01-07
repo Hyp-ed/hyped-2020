@@ -33,6 +33,7 @@ using data::ImuData;
 using data::DataPoint;
 using data::NavigationType;
 using data::NavigationVector;
+using data::State;
 
 namespace sensors {
 
@@ -49,47 +50,47 @@ class FakeImu : public ImuInterface {
           std::string dec_file_path,
           std::string em_file_path,
           bool is_fail,
-          int fail_state,               // 0 calib, 1 acc, 2 dec
+          State fail_state,
           float noise = 0.2);           // if want to change
 
   bool isOnline() override { return true; }
 
   void getData(ImuData* imu) override;
 
-  
+
 
  private:
   utils::Logger&       log_;
   const uint64_t kAccTimeInterval = 50;
-  
+
   /**
    * @return ImuData from file, given current state (calib, acc, dec)
    */
-  ImuData getAccValue(int state);
+  ImuData getAccValue();
 
 
   /**
    * @brief needs to be added to data in getAccValue
-   * 
-   * @param value 
-   * @param noise 
-   * @return NavigationVector 
+   *
+   * @param value
+   * @param noise
+   * @return NavigationVector
    */
   static NavigationVector addNoiseToData(NavigationVector value, float noise);
 
   /**
-   * @brief 
-   * 
+   * @brief
+   *
    */
   void setFailure();
 
 
   /**
    * @brief read into vectors below
-   * 
-   * @param acc_file_path 
-   * @param dec_file_path 
-   * @param em_file_path 
+   *
+   * @param acc_file_path
+   * @param dec_file_path
+   * @param em_file_path
    */
   void readDataFromFile(std::string acc_file_path,
                         std::string dec_file_path,
@@ -97,20 +98,21 @@ class FakeImu : public ImuInterface {
 
   /**
    * @brief check whether it is time to read from vector
-   * 
-   * @return true 
-   * @return false 
+   *
+   * @return true
+   * @return false
    */
   bool accCheckTime();
 
-  
+
   ImuData acc_fail_;
   ImuData acc_zero_;
+  ImuData* prev_acc_;
 
 
   /**
    * @brief storing values from data files in readDataFromFile
-   * 
+   *
    */
   std::vector<NavigationVector> acc_val_read_;
   std::vector<uint32_t>         acc_val_time_;
@@ -118,14 +120,17 @@ class FakeImu : public ImuInterface {
   std::vector<uint32_t>         dec_val_time_;
   std::vector<NavigationVector> em_val_read_;
   std::vector<uint32_t>         em_val_time_;
-
+  std::vector<NavigationVector> read_;
+  std::vector<uint32_t>         time_;
 
   /**
    * @brief array index counter
-   * 
+   *
    */
   int64_t acc_count_;
   uint64_t ref_time_;
+  bool is_fail_;
+  State fail_state_;
   bool failure_happened_;
   uint64_t failure_time_;
   float noise_;
