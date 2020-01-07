@@ -74,7 +74,6 @@ void FakeImu::setFailure()
   // Random point of failure from 0 to 10 seconds
   // Generate a random time for a failure
   failure_time_ = (rand() % 10 + 1) * 1000000;
-
 }
 
 void FakeImu::getData(ImuData* data)
@@ -98,8 +97,10 @@ void FakeImu::getData(ImuData* data)
     ref_time_ = utils::Timer::getTimeMicros();
   }
   if (is_fail_) {
-    if (fail_state_ == current_state) is_fail_ = true;
-    else is_fail_ = false;
+    if (fail_state_ == current_state)
+      is_fail_ = true;
+    else
+      is_fail_ = false;
   }
   if (current_state == State::kCalibrating) {        // stationary states
     data = &acc_zero_;
