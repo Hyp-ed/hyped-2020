@@ -55,7 +55,7 @@ FakeImu::FakeImu(utils::Logger& log,
   acc_fail_.acc[0] = -37.3942;
   acc_fail_.acc[1] = 0;
   acc_fail_.acc[2] = 9.8;
-  acc_fail_.operational = true;                   // TODO(anyone): confirm with nav
+  acc_fail_.operational = true;                   
   acc_zero_.acc[0] = 0;
   acc_zero_.acc[1] = 0;
   acc_zero_.acc[2] = 9.8;
