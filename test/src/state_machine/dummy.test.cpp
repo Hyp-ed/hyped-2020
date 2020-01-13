@@ -76,8 +76,9 @@ using ::testing::AtLeast;
 
 TEST(StateTransitionTest, AcceleratingDecelerating)
 {
-  MockHypedMachine hypedMachine;
-  EXPECT_CALL( hypedMachine, transition(hyped::data::State::kNominalBraking))
+  hyped::state_machine::main main_stm;
+  MockHypedMachine *hypedMachine;
+  EXPECT_CALL( *hypedMachine, transition(hyped::data::State::kNominalBraking))
     .Times(AtLeast(1));
 
 }
