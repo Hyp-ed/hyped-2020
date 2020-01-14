@@ -44,7 +44,6 @@ namespace sensors {
  */
 class FakeImu : public ImuInterface {
  public:
-
   FakeImu(utils::Logger& log_,
           std::string acc_file_path,
           std::string dec_file_path,
