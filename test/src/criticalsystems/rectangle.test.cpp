@@ -21,13 +21,10 @@
 
 struct shapesTest : public ::testing::Test {
   protected:
-    // Add here any types you wish to use across your classes
-    Rectangle rectangle;
+    // Add here any types you wish to use across your unit tests
     void SetUp()
     {
       // Here define the properties of any new types
-      rectangle.changeWidth(4);
-      rectangle.changeHeight(5);
     }
     void TearDown() {}
 };
@@ -35,12 +32,7 @@ struct shapesTest : public ::testing::Test {
 // Example Test
 TEST_F(shapesTest, RectangleHeightConstruction)
 {
-  ASSERT_EQ(5, rectangle.getHeight());
-}
-
-TEST_F(shapesTest, RectangleWidthConstruction)
-{
-// Add test here
+  // Add test here
 }
 
 // Add the remainder of your test suite in here
