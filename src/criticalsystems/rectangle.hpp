@@ -27,16 +27,12 @@
 class Rectangle
 {
   private:
-    int width;
-    int height;
+    // Add global variables here
 
   public:
     Rectangle();
-    virtual  void changeWidth(int w);
-    virtual  void changeHeight(int h);
-    virtual  int getWidth() {return width; }
-    virtual  int getHeight() {return height; }
-    virtual  int area() {return width*height; }
+    // Add your functions here
+
 };
 
 #endif  // CRITICALSYSTEMS_RECTANGLE_HPP_
