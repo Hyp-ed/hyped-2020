@@ -3,6 +3,7 @@
 # add .cpp files using complete path the following format: "<file>.cpp \"
 
 SRCS := \
-  criticalsystem/rectangle.test.cpp \
+  criticalsystems/abobay.test.cpp \
+  criticalsystems/rectangle.test.cpp \
   state_machine/dummy.test.cpp \
   utils/config.test.cpp \
