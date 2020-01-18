@@ -57,7 +57,7 @@ $(TARGET): $(OBJS) lib/libtest.a
 $(OBJS):  $(OBJS_DEBUG_DIR)/%.o: $(SRCS_DIR)/%.cpp $(GTEST_LIB_TARGET)
 	$(Echo) "Compiling $<"
 	$(Verb) mkdir -p $(dir $@)
-	$(Verb) $(CC) $(DEPFLAGS) $(CFLAGS)  -g -o0  -I../src -Ilib/googletest/googletest/include -Ilib/googletest/googlemock/include -o $@  -c $(INC_DIR) $<
+	$(Verb) $(CC) $(DEPFLAGS) $(CFLAGS) -g -I../src -Ilib/googletest/googletest/include -Ilib/googletest/googlemock/include -o $@ -c $(INC_DIR) $<
 
 $(GTEST_LIB_TARGET): $(GTEST).tar.gz
 	$(Echo) "Building GTest Suite"
