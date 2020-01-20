@@ -1,8 +1,9 @@
 /*
- * Author: Lukas Schaefer, Neil McBlane
+ * Author: George Karabassis
+ * Co-Author: 
  * Organisation: HYPED
  * Date: 05/04/2019
- * Description: Main file for navigation class.
+ * Description: Main algorithm.
  *
  *    Copyright 2019 HYPED
  *    Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file
@@ -15,9 +16,11 @@
  *    either express or implied. See the License for the specific language governing permissions and
  *    limitations under the License.
  */
+
 #ifndef NAVIGATION_MAIN_HPP_
 #define NAVIGATION_MAIN_HPP_
 
+#include <iostream>
 #include "data/data.hpp"
 #include "navigation/navigation.hpp"
 #include "utils/concurrent/thread.hpp"
@@ -35,17 +38,31 @@ using utils::System;
 using utils::Logger;
 
 namespace navigation {
+// namespace data {
 
-class Main: public Thread {
-  public:
-    explicit Main(uint8_t id, Logger& log);
-    void run() override;
-    bool isCalibrated();
-  private:
-    Logger& log_;
-    System& sys_;
-    Navigation nav_;
-};
+  class Main {
+    public:
+      Main(Logger& log, int m, int n, int k, Navigation& nav_, KalmanFilter& KF_);
+      void run();
+
+    private:
+      bool callibration();
+      void initKF();
+      void navigate(int i);
+      void initTimestamp();
+      State getState();
+
+      Logger& log_;
+      System& sys_;
+      Navigation nav_;
+      KalmanFilter KF_;
+
+      float dt_;
+      float previousTimestamp_;
+      int m_;
+      int n_;
+      int k_;
+  };
 
 }}  // namespace hyped::navigation
 

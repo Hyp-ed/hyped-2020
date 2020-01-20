@@ -16,70 +16,68 @@
  *  limitations under the License.
  */
 
-
-#include "IMUs_faker.hpp"
 #include <iostream>
 #include <fstream>
+#include <string>
+#include <vector>
+#include "navigation/IMUs_faker.hpp"
 
 using namespace std;
-using Eigen::VectorXf;
-using Eigen::MatrixXf;
 
-demo_IMU_data::demo_IMU_data(string filename, int m)
+namespace hyped {
+namespace navigation {
+
+// using Eigen::VectorXf;
+// using Eigen::MatrixXf;
+
+demoIMUData::demoIMUData(string filename, int m)
 {
     file_name_  = filename;
     m_          = m;
 }
 
-vector< vector<float> > demo_IMU_data::get_data()
+vector< vector<float> > demoIMUData::getData()
 {
     vector< vector<float> > data;
-
     string line;
-    ifstream myfile (file_name_);
-    int i = 0;
+    ifstream myfile(file_name_);
 
-    if (myfile.is_open())
-    {
+    if (myfile.is_open()) {
         vector<float> dt_acc;
         dt_acc.push_back(0.0);
-        for(int d = 0; d < m_; d++){
+        for (int d = 0; d < m_; d++) {
             dt_acc.push_back(0.0);
         }
         
-        while (! myfile.eof() )
-        {
+        while (!myfile.eof()) {
+            getline(myfile, line, '\t');
+            dt_acc.at(0) = strtof((line).c_str(), 0);  //  string to flaot
 
-            getline (myfile,line, '\t');
-            dt_acc.at(0) = strtof((line).c_str(),0); //string to flaot
-
-            for(int d = 0; d < m_; d++)
-            {
-                if (d == m_ -1){
-                    getline (myfile,line, '\n');
+            for (int d = 0; d < m_; d++) {
+                if (d == m_ -1) {
+                    getline(myfile, line, '\n');
+                } else {
+                    getline(myfile, line, '\t');
                 }
-                else{
-                    getline (myfile,line, '\t');
-                }
-                dt_acc.at(1+d) = strtof((line).c_str(),0); //string to flaot
+                dt_acc.at(1+d) = strtof((line).c_str(), 0);  //  string to flaot
             }
 
             data.push_back(dt_acc);
 
-            //resetting touple
+            //  resetting touple
             dt_acc.at(0) = 0;
-            for(int d = 0; d < m_; d++)
-            {
+            for (int d = 0; d < m_; d++) {
                 dt_acc.at(1+d) = 0;
             }
-                
         }
         myfile.close();
+    } else {
+        cout << "Unable to open file";
     }
-    else cout << "Unable to open file";
 
-    // vector<array<double, 2> > data = {{1.0,2.0},{3.0,4.0}};
+    //  vector<array<double, 2> > data = {{1.0,2.0},{3.0,4.0}};
 
     return data;
-    
 }
+
+}}  // namespace hyped navigation

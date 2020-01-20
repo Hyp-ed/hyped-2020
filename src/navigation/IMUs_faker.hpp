@@ -16,22 +16,29 @@
  *  limitations under the License.
  */
 
+#ifndef NAVIGATION_IMUS_FAKER_HPP_
+#define NAVIGATION_IMUS_FAKER_HPP_
+
 #include <iostream>
 #include <vector>
+#include <string>
 #include <Eigen/Dense>
 
 using namespace std;
 
-class demo_IMU_data{
+namespace hyped {
+namespace navigation {
+
+class demoIMUData {
+    public:
+        demoIMUData(string file_name, int m);
+        vector< vector<float> > getData();
 
     public:
-
-        demo_IMU_data(string file_name, int m);
-
-        vector< vector<float> > get_data();
-
-    public:
-
         string file_name_;
         int m_;
 };
+
+}}  // namespace hyped::navigation
+
+#endif  // NAVIGATION_IMUS_FAKER_HPP_
