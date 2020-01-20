@@ -58,8 +58,8 @@ class Navigation {
 
   private:
     VectorXf IMUQuerying();
-    void OutlierDetection();
-    void KFCalc(int i, VectorXf z);
+    int OutlierDetection(DataPoint<ImuDataArray> IMUdata, DataPoint<ImuDataArray> wheelEncoders_data);
+    void KFCalc(int i);
     void StackingKFCalc();
     void QueryKeyences();
     bool SensorsResultsSimilarity();
@@ -71,6 +71,8 @@ class Navigation {
     KalmanFilter KF_;
     uint32_t init_timestamp_;  // current timestamp
     uint32_t prev_timestamp_;  // previous timestamp
+    ModuleStatus status_;  // current pod state
+    VectorXf z_;
     float dt_;
     int m_;
     int n_;

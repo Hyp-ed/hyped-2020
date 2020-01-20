@@ -31,6 +31,7 @@ namespace navigation {
     , sys_(System::getSystem())
     , data_(Data::getInstance())
     , KF_(KF_)
+    , status_(ModuleStatus::kStart)
     , dt_(0)
     , m_(m)
     , n_(n)
@@ -41,26 +42,49 @@ namespace navigation {
   {
     // TODO(george): Make it better.
 
+    // store IMU data
     DataPoint<ImuDataArray> sensorReadings = data_.getSensorsImuData();
-    VectorXf z(m_);
+    // Wheel encoders data is empty for now. Change the function as soon as there is one available in sensors
+    DataPoint<ImuDataArray> wheelEncoders_data = data_.getSensorsImuData();
 
-    for (int j = 0; j < m_; ++j) {
-      for (int i = 0; i < data::Sensors::kNumImus; ++i) {
-        // if faulty imu value, retrun 0 acceleration
-        // else
-        z(j*data::Sensors::kNumImus + i) = sensorReadings.value[i].acc[j];
-        // acc_raw[i] = a[axis_];  // accNorm(a) * (1 - 2 * (a[axis_] < 0));
-      }
+    Navigation::timestampUpdate();
+
+    /* Outlier guys correct me:
+    *
+    * Outlier detection will return the updated version of the sensorReadings captured from above.
+    * It will remove possible failed IMUs or values outside the range.
+    */
+
+    int failedIMUs = Navigation::OutlierDetection(sensorReadings, wheelEncoders_data);
+
+    if (1 > failedIMUs) {  // more than one IMUs failed
+      status_ = ModuleStatus::kCriticalFailure;
+      log_.ERR("NAV", "More than 1 IMU had failed, entering kCriticalFailure");
     }
-    return z;
+    else {
+      // demo
+      for (int j = 0; j < m_; ++j) {
+        for (int i = 0; i < data::Sensors::kNumImus; ++i) {
+          // if faulty imu value, retrun 0 acceleration
+          // else
+          z_(j*data::Sensors::kNumImus + i) = sensorReadings.value[i].acc[j];
+          // acc_raw[i] = a[axis_];  // accNorm(a) * (1 - 2 * (a[axis_] < 0));
+        }
+      }
+      // z_ = sensorReadings;  // Store IMU data to a measurement vector
+    }
+    return z_;
   }
 
-  void Navigation::OutlierDetection()
+  int Navigation::OutlierDetection(DataPoint<ImuDataArray> IMUdata, DataPoint<ImuDataArray> wheelEncoders_data)
   {
     // TODO(Outlier_lads): Complete.
+
+    // For now, there are 0 failed IMUS for demo purposes
+    return 0;
   };
 
-  void Navigation::KFCalc(int i, VectorXf z)
+  void Navigation::KFCalc(int i)
   {
     // The way KF works is subject to change to use the stacking KF technique.
     // Will work through it soon
@@ -73,15 +97,15 @@ namespace navigation {
     vector< vector<float> > data = IMUdemo.getData();
 
     for (int d = 0; d < m_; d++) {
-        z(d) = data[i][d+1];
+        z_(d) = data[i][d+1];
     }
     
     // Filtering - predict next state.
     if (i == 0) {
-        KF_.filter(0.05, s, z);
+        KF_.filter(0.05, s, z_);
     } else {
         dt_ = (float)0.001*(data[i][0] - data[i-1][0]);
-        KF_.filter(dt_, s, z);
+        KF_.filter(dt_, s, z_);
     }
   };
 
@@ -108,7 +132,6 @@ namespace navigation {
     uint32_t t = sensorReadings.timestamp;
     dt_ = t - prev_timestamp_;
     prev_timestamp_ = t;
-    
   }
 
   bool Navigation::calibrateGravity()
@@ -124,6 +147,7 @@ namespace navigation {
 
   void Navigation::run(int i)
   {
+    Navigation::IMUQuerying();
     // TODO(george): Complete.
     
     // Navigation::IMUQuerying();
