@@ -57,10 +57,10 @@ class Navigation {
     void run(int i);
 
   private:
-    VectorXf IMUQuerying();
-    int OutlierDetection(DataPoint<ImuDataArray> IMUdata, DataPoint<ImuDataArray> wheelEncoders_data);
-    void KFCalc(int i);
-    void StackingKFCalc();
+    void IMUQuerying(int i);
+    int OutlierDetection(ImuDataPointArray& IMUdata, ImuDataPointArray& wheelEncoders_data);
+    void KFUpdate(int i);
+    void StackingKFUpdate();
     void QueryKeyences();
     bool SensorsResultsSimilarity();
     void timestampUpdate();

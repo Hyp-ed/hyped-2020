@@ -19,6 +19,7 @@
 
 #include <iostream>
 #include <vector>
+#include <cmath>
 #include "navigation/kalman_filter.hpp"
 #include "navigation/navigation.hpp"
 #include "IMUs_faker.hpp"
@@ -38,53 +39,108 @@ namespace navigation {
     , k_(k)
   {}
 
-  VectorXf Navigation::IMUQuerying()
+  void Navigation::IMUQuerying(int i)
   {
     // TODO(george): Make it better.
 
     // store IMU data
-    DataPoint<ImuDataArray> sensorReadings = data_.getSensorsImuData();
+    ImuDataPointArray sensorReadings = data_.getSensorsImuData();
     // Wheel encoders data is empty for now. Change the function as soon as there is one available in sensors
-    DataPoint<ImuDataArray> wheelEncoders_data = data_.getSensorsImuData();
+    ImuDataPointArray wheelEncoders_data = data_.getSensorsImuData();
 
+    // update timestamp for new KF update
     Navigation::timestampUpdate();
-
-    /* Outlier guys correct me:
-    *
-    * Outlier detection will return the updated version of the sensorReadings captured from above.
-    * It will remove possible failed IMUs or values outside the range.
-    */
 
     int failedIMUs = Navigation::OutlierDetection(sensorReadings, wheelEncoders_data);
 
     if (1 > failedIMUs) {  // more than one IMUs failed
       status_ = ModuleStatus::kCriticalFailure;
       log_.ERR("NAV", "More than 1 IMU had failed, entering kCriticalFailure");
+    } else {  // Kalman filter update
+      Navigation::KFUpdate(i);
     }
-    else {
-      // demo
-      for (int j = 0; j < m_; ++j) {
-        for (int i = 0; i < data::Sensors::kNumImus; ++i) {
-          // if faulty imu value, retrun 0 acceleration
-          // else
-          z_(j*data::Sensors::kNumImus + i) = sensorReadings.value[i].acc[j];
-          // acc_raw[i] = a[axis_];  // accNorm(a) * (1 - 2 * (a[axis_] < 0));
-        }
-      }
-      // z_ = sensorReadings;  // Store IMU data to a measurement vector
-    }
-    return z_;
   }
 
-  int Navigation::OutlierDetection(DataPoint<ImuDataArray> IMUdata, DataPoint<ImuDataArray> wheelEncoders_data)
+  int Navigation::OutlierDetection(ImuDataPointArray& sensorReadings, ImuDataPointArray& wheelEncoders_data)
   {
-    // TODO(Outlier_lads): Complete.
+    // TODO(Outlier_lads): Check if there can be any improvements.
+    // For now, state_acc.txt is used as fake data for testing/demo purposes.
+
+    float IMUdataMedian = 0.0;  // IMU data median
+    float IMUdataMean = 0.0;  // IMU data mean
+    float meanAD = 0.0;  // mean absolute derivation
+    float medAD = 0.0;  // median absolute derivation
+    int nFailedIMUs = 0;  // Total Failed IMUs
+    vector<float> modZscore;  // Modified Z-score (source: IBM)
+    vector<float> IMU_measurements;
+
+    for (int i = 0; i < data::Sensors::kNumImus; ++i) {
+      // if faulty imu value, replace it with 0 acceleration  // find out how to check whether IMU is faulty.
+      // increment failedIMUs
+      IMU_measurements.at(data::Sensors::kNumImus + i) = sensorReadings.value[i].acc[0];  // currently set to 0 (x axis). Will update it to contain all 3 axes
+      IMUdataMean = IMUdataMean + sensorReadings.value[i].acc[0];  // currently set to 0 (x axis). Will update it to contain all 3 axes
+    }
+    sort(IMU_measurements.begin(), IMU_measurements.end());  // sorting IMU data
+
+    // IMU data mean
+    IMUdataMean = IMUdataMean/IMU_measurements.size();
+
+    // IMU data median
+    if (data::Sensors::kNumImus % 2 == 0) {
+      IMUdataMedian = 3*IMU_measurements.at(IMU_measurements.size()/2 - 1)/2 - IMU_measurements.at(IMU_measurements.size()/2)/2;
+    } else {
+      IMUdataMedian = IMU_measurements.at((IMU_measurements.size() - 1)/2);
+    }
+
+    // IMU absolute data mean derivation
+    float nAbsDataMeanDiff = 0.0;
+    for (int i=0; i < IMU_measurements.size(); i++) {
+      nAbsDataMeanDiff = nAbsDataMeanDiff + abs(IMU_measurements.at(i) - IMUdataMean);
+    }
+    meanAD = nAbsDataMeanDiff/IMU_measurements.size();
+
+    // IMU absolute data median derivation
+    vector<float> nAbsDataMedianDiff;
+    for (int i=0; i < IMU_measurements.size(); i++) {
+      nAbsDataMedianDiff.at(i) = abs(IMU_measurements.at(i) - IMUdataMedian);
+    }
+    sort(nAbsDataMedianDiff.begin(), nAbsDataMedianDiff.end());
+
+    if (data::Sensors::kNumImus % 2 == 0) {
+      medAD = 3*nAbsDataMedianDiff.at(nAbsDataMedianDiff.size()/2 - 1)/2 - nAbsDataMedianDiff.at(nAbsDataMedianDiff.size()/2)/2;
+    } else {
+      medAD = nAbsDataMedianDiff.at((nAbsDataMedianDiff.size() - 1)/2);
+    }
+
+    // Calculating Modified Z scores
+    if (medAD != 0) {
+      for (int i=0; i < IMU_measurements.size(); i++) {
+        modZscore.at(i) = (IMU_measurements.at(i) - IMUdataMedian)/(1.486 * medAD);
+      }
+    }
+    else {
+      for (int i=0; i < IMU_measurements.size(); i++) {
+        modZscore.at(i) = (IMU_measurements.at(i) - IMUdataMedian)/(1.253314 * meanAD);
+      }
+    }
+
+    // Replace outliers exceeding 3.5 sd
+    for (int i=0; i < modZscore.size(); i++) {
+      if (modZscore.at(i) > 3.5){
+        IMU_measurements.at(i) = IMUdataMedian;
+      }
+    }
+
+    // Storing final IMU_measurements into VectorXf
+    for (int i=0; i < IMU_measurements.size(); i++) {
+      z_(i) = IMU_measurements.at(i);
+    }
 
     // For now, there are 0 failed IMUS for demo purposes
-    return 0;
+    return nFailedIMUs;
   };
 
-  void Navigation::KFCalc(int i)
+  void Navigation::KFUpdate(int i)
   {
     // The way KF works is subject to change to use the stacking KF technique.
     // Will work through it soon
@@ -109,7 +165,7 @@ namespace navigation {
     }
   };
 
-  void Navigation::StackingKFCalc()
+  void Navigation::StackingKFUpdate()
   {
     // TODO(george): Complete.
   };
@@ -127,7 +183,7 @@ namespace navigation {
 
   void Navigation::timestampUpdate()
   {
-    DataPoint<ImuDataArray> sensorReadings = data_.getSensorsImuData();
+    ImuDataPointArray sensorReadings = data_.getSensorsImuData();
 
     uint32_t t = sensorReadings.timestamp;
     dt_ = t - prev_timestamp_;
@@ -147,12 +203,11 @@ namespace navigation {
 
   void Navigation::run(int i)
   {
-    Navigation::IMUQuerying();
     // TODO(george): Complete.
-    
-    // Navigation::IMUQuerying();
 
-    // Navigation::Outlier_detection();
+    Navigation::IMUQuerying(i);
+
+    // Stuff such as uncertainty and sensors disagreement will be added
   };
 
 }}  // namespace hyped navigation
