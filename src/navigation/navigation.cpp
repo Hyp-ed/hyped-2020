@@ -53,7 +53,7 @@ namespace navigation {
 
     int failedIMUs = Navigation::OutlierDetection(sensorReadings, wheelEncoders_data);
 
-    if (1 > failedIMUs) {  // more than one IMUs failed
+    if (failedIMUs > 1) {  // more than one IMUs failed
       status_ = ModuleStatus::kCriticalFailure;
       log_.ERR("NAV", "More than 1 IMU had failed, entering kCriticalFailure");
     } else {  // Kalman filter update
