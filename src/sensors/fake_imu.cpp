@@ -63,8 +63,10 @@ FakeImu::FakeImu(utils::Logger& log,
   prev_acc_ = &acc_zero_;
 
   readDataFromFile(acc_file_path, dec_file_path, em_file_path);
-  if(failure_happened_) {
-    // write log messages
+  if (is_fail_) {
+    log_.INFO("Fake-Imu", "Fake-Imu FAIL initialised");
+  } else {
+    log_.INFO("Fake-Imu", "Fake-Imu initialised");
   }
 }
 
@@ -80,26 +82,25 @@ void FakeImu::getData(ImuData* data)
   // switch statement for states
   // call getAccValue
 
-  read_.clear();
-  time_.clear();
+  // read_->clear();
+  // time_->clear();
   State current_state = data_.getStateMachineData().current_state;
-  switch (current_state) {
-    case State::kAccelerating:
-      read_ = acc_val_read_;
-      time_ = acc_val_time_;
-    case State::kNominalBraking:
-      read_ = dec_val_read_;
-      time_ = dec_val_time_;
-    case State::kEmergencyBraking:
-      read_ = em_val_read_;
-      time_ = em_val_time_;
-    ref_time_ = utils::Timer::getTimeMicros();
+  if (current_state == State::kAccelerating) {
+      read_ = &acc_val_read_;
+      time_ = &acc_val_time_;
+  } else if (current_state == State::kNominalBraking) {
+      read_ = &dec_val_read_;
+      time_ = &dec_val_time_;
+  } else if (current_state == State::kEmergencyBraking) {
+      read_ = &em_val_read_;
+      time_ = &em_val_time_;
   }
+  ref_time_ = utils::Timer::getTimeMicros();
   if (is_fail_) {
-    if (fail_state_ == current_state)
-      is_fail_ = true;
+    if (fail_state_ == current_state)     // if we are in current fail state
+      fail_now_ = true;
     else
-      is_fail_ = false;
+      fail_now_ = false;
   }
   if (current_state == State::kCalibrating) {        // stationary states
     data = &acc_zero_;
@@ -112,7 +113,6 @@ void FakeImu::getData(ImuData* data)
       data = prev_acc_;
     }
   }
-  // TODO(anyone): fill FIFO with noised values
 }
 
 ImuData FakeImu::getAccValue()
@@ -126,23 +126,31 @@ ImuData FakeImu::getAccValue()
 
   uint32_t vector_time;
   bool is_time = false;
-  int count = 0;
+  uint8_t count = 0;
   while (!is_time) {
-    if (count >= read_.size()) {         // last value if out of bounds
-      vector_time = time_[count-1];
+    if (count >= read_->size()) {         // last value if out of bounds
+      // vector_time = time_[count-1];
+      vector_time = time_->at(count-1);
       is_time = true;                    // out of bounds
     } else {
-      vector_time = time_[count];
+      // vector_time = time_[count];
+      vector_time = time_->at(count);
     }
     if (current_time - ref_time_ >= vector_time) {
       return_data.operational = true;
-      return_data.acc = read_[count];
+      return_data.acc = read_->at(count);
       is_time = true;
     }
     count++;
   }
 
-  if (is_fail_) {
+  // re-noising acc value to fill FIFO
+  for (int i = 0; i < data::ImuData::kFifoSize; i++) {
+    fifo_acc_[i] = addNoiseToData(return_data.acc, noise_);
+  }
+  return_data.fifo = fifo_acc_;
+
+  if (fail_now_) {
     if (utils::Timer::getTimeMicros() - ref_time_ >= failure_time_ || failure_happened_) {
       if (!failure_happened_) {
         log_.INFO("Fake-IMU", "Start failure...");
@@ -193,6 +201,8 @@ void FakeImu::readDataFromFile(std::string acc_file_path,
       val_read  = &em_val_read_;
       // bool_read = &em_val_operational_;
     }
+
+    // TODO(yeyao, meina): fix file path, throwing error
     std::ifstream file;
     file.open(file_path);
     if (!file.is_open()) {
