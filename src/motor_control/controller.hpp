@@ -19,14 +19,14 @@
  *    limitations under the License.
  */
 
-#ifndef PROPULSION_CONTROLLER_HPP_
-#define PROPULSION_CONTROLLER_HPP_
+#ifndef MOTOR_CONTROL_CONTROLLER_HPP_
+#define MOTOR_CONTROL_CONTROLLER_HPP_
 
 #include <atomic>
 
-#include "propulsion/controller_interface.hpp"
-#include "propulsion/file_reader.hpp"
-#include "propulsion/can/can_sender.hpp"
+#include "motor_control/controller_interface.hpp"
+#include "motor_control/file_reader.hpp"
+#include "motor_control/can/can_sender.hpp"
 #include "data/data.hpp"
 #include "utils/timer.hpp"
 #include "utils/logger.hpp"
@@ -245,4 +245,4 @@ class Controller : public ControllerInterface {
 };
 }}  // namespace hyped::motor_control
 
-#endif  // PROPULSION_CONTROLLER_HPP_
+#endif  // MOTOR_CONTROL_CONTROLLER_HPP_

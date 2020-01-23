@@ -16,8 +16,8 @@
 *    limitations under the License.
 */
 
-#ifndef PROPULSION_STATE_PROCESSOR_INTERFACE_HPP_
-#define PROPULSION_STATE_PROCESSOR_INTERFACE_HPP_
+#ifndef MOTOR_CONTROL_STATE_PROCESSOR_INTERFACE_HPP_
+#define MOTOR_CONTROL_STATE_PROCESSOR_INTERFACE_HPP_
 
 #include "utils/logger.hpp"
 #include "utils/system.hpp"
@@ -108,4 +108,4 @@ class StateProcessorInterface
 }  // namespace motor_control
 }  // namespace hyped
 
-#endif  // PROPULSION_STATE_PROCESSOR_INTERFACE_HPP_
+#endif  // MOTOR_CONTROL_STATE_PROCESSOR_INTERFACE_HPP_

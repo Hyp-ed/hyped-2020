@@ -16,15 +16,15 @@
  *    limitations under the License.
  */
 
-#ifndef PROPULSION_CAN_FAKE_CAN_SENDER_HPP_
-#define PROPULSION_CAN_FAKE_CAN_SENDER_HPP_
+#ifndef MOTOR_CONTROL_CAN_FAKE_CAN_SENDER_HPP_
+#define MOTOR_CONTROL_CAN_FAKE_CAN_SENDER_HPP_
 
 #include <atomic>
 #include <iostream>
 #include "utils/io/can.hpp"
 #include "utils/logger.hpp"
 #include "sender_interface.hpp"
-#include "propulsion/can/fake_can_endpoint.hpp"
+#include "motor_control/can/fake_can_endpoint.hpp"
 
 namespace hyped
 {
@@ -58,4 +58,4 @@ class FakeCanSender : public CanProccesor, public SenderInterface
 }  // namespace motor_control
 }  // namespace hyped
 
-#endif  // PROPULSION_CAN_FAKE_CAN_SENDER_HPP_
+#endif  // MOTOR_CONTROL_CAN_FAKE_CAN_SENDER_HPP_

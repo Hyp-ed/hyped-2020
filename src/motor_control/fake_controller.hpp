@@ -19,12 +19,12 @@
  *    limitations under the License.
  */
 
-#ifndef PROPULSION_FAKE_CONTROLLER_HPP_
-#define PROPULSION_FAKE_CONTROLLER_HPP_
+#ifndef MOTOR_CONTROL_FAKE_CONTROLLER_HPP_
+#define MOTOR_CONTROL_FAKE_CONTROLLER_HPP_
 
 #include "data/data.hpp"
 #include "utils/timer.hpp"
-#include "propulsion/controller_interface.hpp"
+#include "motor_control/controller_interface.hpp"
 #include "utils/logger.hpp"
 #include "utils/io/can.hpp"
 
@@ -130,4 +130,4 @@ class FakeController : public ControllerInterface {
 
 }}  //  namespace hyped::utils
 
-#endif  // PROPULSION_FAKE_CONTROLLER_HPP_
+#endif  // MOTOR_CONTROL_FAKE_CONTROLLER_HPP_

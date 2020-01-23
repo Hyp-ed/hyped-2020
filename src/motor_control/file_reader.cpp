@@ -25,7 +25,7 @@
 #include <string>
 #include <vector>
 
-#include "propulsion/file_reader.hpp"
+#include "motor_control/file_reader.hpp"
 
 namespace hyped {
 namespace motor_control {

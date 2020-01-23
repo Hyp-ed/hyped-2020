@@ -16,7 +16,7 @@
  *    limitations under the License.
  */
 
-#include "propulsion/can/fake_can_sender.hpp"
+#include "motor_control/can/fake_can_sender.hpp"
 
 namespace hyped
 {

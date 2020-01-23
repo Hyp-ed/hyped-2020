@@ -19,8 +19,8 @@
  *    limitations under the License.
  */
 
-#ifndef PROPULSION_RPM_REGULATOR_HPP_
-#define PROPULSION_RPM_REGULATOR_HPP_
+#ifndef MOTOR_CONTROL_RPM_REGULATOR_HPP_
+#define MOTOR_CONTROL_RPM_REGULATOR_HPP_
 
 #define MAX_RPM 6000
 #define MAX_TEMP 150
@@ -30,7 +30,7 @@
 #include <vector>
 #include "utils/system.hpp"
 #include "utils/logger.hpp"
-#include "propulsion/controller.hpp"
+#include "motor_control/controller.hpp"
 
 namespace hyped {
 
@@ -93,4 +93,4 @@ class RPM_Regulator {
 };
 
 }}  // namespace hyped::motor_control
-#endif  // PROPULSION_RPM_REGULATOR_HPP_
+#endif  // MOTOR_CONTROL_RPM_REGULATOR_HPP_

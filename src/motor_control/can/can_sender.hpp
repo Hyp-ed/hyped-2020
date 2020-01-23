@@ -16,15 +16,15 @@
  *    limitations under the License.
  */
 
-#ifndef PROPULSION_CAN_CAN_SENDER_HPP_
-#define PROPULSION_CAN_CAN_SENDER_HPP_
+#ifndef MOTOR_CONTROL_CAN_CAN_SENDER_HPP_
+#define MOTOR_CONTROL_CAN_CAN_SENDER_HPP_
 
 #include <atomic>
 #include <iostream>
 #include "utils/io/can.hpp"
 #include "utils/logger.hpp"
 #include "utils/concurrent/thread.hpp"
-#include "propulsion/controller_interface.hpp"
+#include "motor_control/controller_interface.hpp"
 #include "sender_interface.hpp"
 #include "utils/timer.hpp"
 
@@ -95,4 +95,4 @@ class CanSender : public CanProccesor, public SenderInterface
 }  // namespace motor_control
 }  // namespace hyped
 
-#endif  // PROPULSION_CAN_CAN_SENDER_HPP_
+#endif  // MOTOR_CONTROL_CAN_CAN_SENDER_HPP_

@@ -18,8 +18,8 @@
  *    limitations under the License.
  */
 
-#ifndef PROPULSION_FILE_READER_HPP_
-#define PROPULSION_FILE_READER_HPP_
+#ifndef MOTOR_CONTROL_FILE_READER_HPP_
+#define MOTOR_CONTROL_FILE_READER_HPP_
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -31,7 +31,7 @@
 
 #include "utils/logger.hpp"
 #include "utils/system.hpp"
-#include "propulsion/controller_interface.hpp"
+#include "motor_control/controller_interface.hpp"
 
 namespace hyped {
 namespace motor_control {
@@ -67,4 +67,4 @@ class FileReader {
   static void addData(std::string lineData[], uint8_t* message_data);
 };
 }}  // namespace hyped::motor_control
-#endif  // PROPULSION_FILE_READER_HPP_
+#endif  // MOTOR_CONTROL_FILE_READER_HPP_

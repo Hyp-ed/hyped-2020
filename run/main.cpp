@@ -27,7 +27,7 @@
 #include "utils/system.hpp"
 #include "navigation/main.hpp"
 #include "sensors/main.hpp"
-#include "propulsion/main.hpp"
+#include "motor_control/main.hpp"
 #include "embrakes/main.hpp"
 #include "state_machine/main.hpp"
 #include "telemetry/main.hpp"

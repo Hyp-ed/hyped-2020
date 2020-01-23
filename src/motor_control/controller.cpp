@@ -19,7 +19,7 @@
  *    limitations under the License.
  */
 
-#include "propulsion/controller.hpp"
+#include "motor_control/controller.hpp"
 
 namespace hyped {
 namespace motor_control {

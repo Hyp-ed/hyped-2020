@@ -20,7 +20,7 @@
  */
 
 #include <vector>
-#include "propulsion/RPM_regulator.hpp"
+#include "motor_control/RPM_regulator.hpp"
 
 namespace hyped {
 

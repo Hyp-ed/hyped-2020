@@ -16,8 +16,8 @@
  *    limitations under the License.
  */
 
-#ifndef PROPULSION_MAIN_HPP_
-#define PROPULSION_MAIN_HPP_
+#ifndef MOTOR_CONTROL_MAIN_HPP_
+#define MOTOR_CONTROL_MAIN_HPP_
 
 #include "utils/concurrent/thread.hpp"
 #include "utils/concurrent/barrier.hpp"
@@ -27,7 +27,7 @@
 // #include "propulsion/can/can_sender.hpp"
 #include "data/data.hpp"
 
-#include "state_processor.hpp"
+#include "motor_control/state_processor.hpp"
 
 namespace hyped
 {
@@ -67,4 +67,4 @@ class Main : public Thread
 }  // namespace motor_control
 }  // namespace hyped
 
-#endif  // PROPULSION_MAIN_HPP_
+#endif  // MOTOR_CONTROL_MAIN_HPP_

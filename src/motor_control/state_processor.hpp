@@ -16,18 +16,18 @@
 *    limitations under the License.
 */
 
-#ifndef PROPULSION_STATE_PROCESSOR_HPP_
-#define PROPULSION_STATE_PROCESSOR_HPP_
+#ifndef MOTOR_CONTROL_STATE_PROCESSOR_HPP_
+#define MOTOR_CONTROL_STATE_PROCESSOR_HPP_
 
 #include "utils/logger.hpp"
 #include "utils/system.hpp"
 #include "utils/timer.hpp"
 
-#include "propulsion/state_processor_interface.hpp"
-#include "propulsion/controller_interface.hpp"
-#include "propulsion/controller.hpp"
-#include "propulsion/fake_controller.hpp"
-#include "propulsion/RPM_regulator.hpp"
+#include "motor_control/state_processor_interface.hpp"
+#include "motor_control/controller_interface.hpp"
+#include "motor_control/controller.hpp"
+#include "motor_control/fake_controller.hpp"
+#include "motor_control/RPM_regulator.hpp"
 #include "data/data.hpp"
 
 namespace hyped
@@ -162,4 +162,4 @@ class StateProcessor : public StateProcessorInterface
 
 }}  // hyped::motor_control
 
-#endif  // PROPULSION_STATE_PROCESSOR_HPP_
+#endif  // MOTOR_CONTROL_STATE_PROCESSOR_HPP_

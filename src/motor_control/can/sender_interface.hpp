@@ -16,8 +16,8 @@
  *    limitations under the License.
  */
 
-#ifndef PROPULSION_CAN_SENDER_INTERFACE_HPP_
-#define PROPULSION_CAN_SENDER_INTERFACE_HPP_
+#ifndef MOTOR_CONTROL_CAN_SENDER_INTERFACE_HPP_
+#define MOTOR_CONTROL_CAN_SENDER_INTERFACE_HPP_
 
 #include "utils/io/can.hpp"
 
@@ -68,4 +68,4 @@ class SenderInterface
 }  // namespace motor_control
 }  // namespace hyped
 
-#endif  // PROPULSION_CAN_SENDER_INTERFACE_HPP_
+#endif  // MOTOR_CONTROL_CAN_SENDER_INTERFACE_HPP_

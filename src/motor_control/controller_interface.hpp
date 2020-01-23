@@ -16,8 +16,8 @@
  *    limitations under the License.
  */
 
-#ifndef PROPULSION_CONTROLLER_INTERFACE_HPP_
-#define PROPULSION_CONTROLLER_INTERFACE_HPP_
+#ifndef MOTOR_CONTROL_CONTROLLER_INTERFACE_HPP_
+#define MOTOR_CONTROL_CONTROLLER_INTERFACE_HPP_
 
 #include <stdint.h>
 
@@ -72,4 +72,4 @@ class ControllerInterface {
 }  // namespace motor_control
 }  // namespace hyped
 
-#endif  // PROPULSION_CONTROLLER_INTERFACE_HPP_
+#endif  // MOTOR_CONTROL_CONTROLLER_INTERFACE_HPP_
