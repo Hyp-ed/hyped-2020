@@ -1,10 +1,10 @@
 /*
- * Author: Jack Horsburgh
+ * Author:
  * Organisation: HYPED
- * Date: 19/06/18
+ * Date:
  * Description: IMU manager for getting IMU data from around the pod and pushes to data struct
  *
- *    Copyright 2018 HYPED
+ *    Copyright 2019 HYPED
  *    Licensed under the Apache License, Version 2.0 (the "License");
  *    you may not use this file except in compliance with the License.
  *    You may obtain a copy of the License at
@@ -23,7 +23,8 @@
 
 #include <cstdint>
 
-#include "sensors/manager_interface.hpp"
+#include "data/data.hpp"
+#include "utils/concurrent/thread.hpp"
 
 #include "sensors/interface.hpp"
 #include "utils/system.hpp"
@@ -31,13 +32,14 @@
 namespace hyped {
 
 using utils::Logger;
+using utils::concurrent::Thread;
 
 namespace sensors {
 /**
  * @brief creates class to hold multiple IMUs and respective data.
  *
  */
-class ImuManager: public ImuManagerInterface {
+class ImuManager: public Thread {
   typedef data::DataPoint<array<ImuData, data::Sensors::kNumImus>>  DataArray;
 
  public:
@@ -45,7 +47,6 @@ class ImuManager: public ImuManagerInterface {
    * @brief Construct a new Imu Manager object
    *
    * @param log
-   * @param imu
    */
   explicit ImuManager(Logger& log);
 
