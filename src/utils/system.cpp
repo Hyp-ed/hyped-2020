@@ -152,6 +152,7 @@ System::System(int argc, char* argv[])
       {"fake_keyence_fail", no_argument, 0, 'K'},
       {"fake_temperature_fail", no_argument, 0, 'L'},
       {"fake_highpower", no_argument, 0, 'z'},
+      // {"fake_gpio", no_argument, 0, 'z'},
       {"battery_test", no_argument, 0, 'Z'},
       {"imu_id", no_argument, 0, 'p'},
       {"run_id", no_argument, 0, 'q'},
@@ -283,6 +284,10 @@ System::System(int argc, char* argv[])
         if (optarg) battery_test = atoi(optarg);
         else        battery_test = 1;
         break;
+      // case 'Z':   // fake_gpio
+      //   if (optarg) fake_gpio = atoi(optarg);
+      //   else        fake_gpio = 1;
+      //   break;
       case 'p':   // imu_id
         if (optarg) imu_id = atoi(optarg);
         else        imu_id = 1;

@@ -77,6 +77,7 @@ class System {
   bool fake_batteries_fail;
   bool fake_keyence_fail;
   bool fake_temperature_fail;
+  bool fake_gpio;
 
   // sensor test variables below
   bool battery_test;
