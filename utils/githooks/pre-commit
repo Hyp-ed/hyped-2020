@@ -1,0 +1,14 @@
+
+#!/bin/bash
+
+echo "Running pre-commit hook"
+
+# compile and link, lint on src/
+make
+
+# compile and link, lint on test/src
+make test/lib/libtest.a
+make -C test/ testrunner lint
+
+# run static analyzer on src test/src 
+# make static # off for now

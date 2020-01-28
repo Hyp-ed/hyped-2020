@@ -5,13 +5,18 @@
 TARGET=testrunner
 MAIN=main.test.cpp
 SRCS_DIR:=src
-OBJS_DIR:=../bin/test
 LIBS_DIR:=lib
 GTEST:=$(LIBS_DIR)/googletest
+CPPCHECK:=$(LIBS_DIR)/cppcheck
 GTEST_LIB_TARGET:=$(GTEST)/build/lib/libgtest.a
 LINT:=../utils/Lint/presubmit.py
-
+CPPCHECK_EXC_TARGET:=$(CPPCHECK)/cppcheck
+COVERAGE_DIR:=coverage
 GOOGLE_TEST_LIBS = -lgtest -Llib/googletest/build/lib/
+
+CPPCHECK_EXEC=$(shell command -v cppcheck || echo ./$(CPPCHECK_EXC_TARGET))
+CPPCHECK_ENABLE_OPS=
+CPPCHECK_FLAGS=--quiet --error-exitcode=1 --inline-suppr --suppressions-list=./lib/cppcheck-suppress
 
 VPATH=../src
 # change to gnu++1 for windows using uname
@@ -31,9 +36,10 @@ include $(SRCS_DIR)/Test.files
 SRCS := $(SRCS) $(MAIN)
 OBJS := $(SRCS:.cpp=.o)
 
-OBJS := $(patsubst %,$(OBJS_DIR)/%,$(OBJS))
+OBJS_DEBUG_DIR := ../$(OBJS_DEBUG_DIR)
+OBJS := $(patsubst %,$(OBJS_DEBUG_DIR)/%,$(OBJS))
 
-DEP_DIR := $(OBJS_DIR)
+DEP_DIR := $(OBJS_DEBUG_DIR)
 DEPFLAGS = -MT $@ -MMD -MP -MF $(DEP_DIR)/$*.d
 INC_DIR := -I$(SRCS_DIR) -I$(LIBS_DIR) -I../src/
 
@@ -43,26 +49,44 @@ ifndef VERBOSE
 endif
 Echo := $(Verb)echo
 
+ifneq ($(CPPCHECK_ENABLE_OPS), )
+	CPPCHECK_FLAGS+=--enable=$(CPPCHECK_ENABLE_OPS)
+endif
+
 default: runner
 
 .PHONY: runner
 runner: $(TARGET)
 	$(Verb) chmod u+x testrunner
-	$(Verb) ./testrunner
+	$(Verb) cd $(ROOT); ./test/testrunner
+
+staticcheck: $(TARGET) $(CPPCHECK_EXC_TARGET)
+	$(Echo) "Starting Static Checker"
+	$(Echo) "Running checker on /src ..."
+	$(Verb) $(CPPCHECK_EXEC) $(CPPCHECK_FLAGS) ../src
+	$(Echo) "Running checker on /test/src ..."
+	$(Verb) $(CPPCHECK_EXEC) $(CPPCHECK_FLAGS) ./src
+	$(Echo) "Static analysis complete"
 
 $(TARGET): $(OBJS) lib/libtest.a
 	$(Echo) "Linking executable $(MAIN) into $@"
-	$(Verb) $(LL)  -o $@ $(OBJS) $(LFLAGS)
+	$(Verb) $(LL)  -o $@ $(OBJS) $(LFLAGS) $(COVERAGE_FLAGS)
 
-$(OBJS):  $(OBJS_DIR)/%.o: $(SRCS_DIR)/%.cpp $(GTEST_LIB_TARGET)
+$(OBJS):  $(OBJS_DEBUG_DIR)/%.o: $(SRCS_DIR)/%.cpp $(GTEST_LIB_TARGET)
 	$(Echo) "Compiling $<"
 	$(Verb) mkdir -p $(dir $@)
-	$(Verb) $(CC) $(DEPFLAGS) $(CFLAGS) -I../src -Ilib/googletest/googletest/include -o $@ -c $(INC_DIR) $<
+	$(Verb) $(CC) $(DEPFLAGS) $(CFLAGS) $(COVERAGE_FLAGS) -I../src -Ilib/googletest/googletest/include -o $@ -c $(INC_DIR) $<
 
 $(GTEST_LIB_TARGET): $(GTEST).tar.gz
 	$(Echo) "Building GTest Suite"
-	$(Verb) ./setup.sh
+	$(Verb) chmod u+x ./lib/googletestsetup.sh
+	$(Verb) ./lib/googletestsetup.sh
 	$(Verb) touch $@
+
+$(CPPCHECK_EXC_TARGET): $(CPPCHECK).tar.gz
+	$(Verb) command -v cppcheck > /dev/null 2>&1 || \
+	(chmod u+x ./lib/cppchecksetup.sh && ./lib/cppchecksetup.sh && touch $@)
+
 
 lib/libtest.a:
 	$(Verb) make -C .. test/lib/libtest.a
@@ -74,7 +98,8 @@ cleanlint:
 	$(Verb) rm -f .cpplint-cache
 
 clean:
-	$(Verb) rm -rf $(OBJS_DIR)/*
+	$(Verb) rm -rf $(OBJS_DEBUG_DIR)/*
+	$(Verb) rm -rf $(COVERAGE_DIR)
 	$(Verb) rm -f $(TARGET)
 	$(Verb) rm -f $(MAINS)
 	$(Verb) rm -f lib/libtest.a
