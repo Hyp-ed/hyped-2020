@@ -63,7 +63,7 @@ namespace navigation {
 
   int Navigation::OutlierDetection(ImuDataPointArray& sensorReadings, ImuDataPointArray& wheelEncoders_data)
   {
-    // TODO(Outlier_lads): Check if there can be any improvements.
+    // TODO(Outlier_lads): Replace the following code with your outlier detection algorithm.
     // For now, state_acc.txt is used as fake data for testing/demo purposes.
 
     float IMUdataMedian = 0.0;  // IMU data median
