@@ -20,7 +20,7 @@
 #ifndef NAVIGATION_IMU_QUERY_HPP_
 #define NAVIGATION_IMU_QUERY_HPP_
 
-#include <Eigen/Dense>
+#include "../lib/Eigen/Dense"
 
 #include <cstdint>
 #include <string>

@@ -21,7 +21,7 @@
 #ifndef UTILS_MATH_KALMAN_MULTIVARIATE_HPP_
 #define UTILS_MATH_KALMAN_MULTIVARIATE_HPP_
 
-#include <Eigen/Dense>
+#include "../lib/Eigen/Dense"
 
 using Eigen::MatrixXf;
 using Eigen::VectorXf;

@@ -5,3 +5,4 @@
 SRCS := \
   state_machine/dummy.test.cpp \
   utils/config.test.cpp \
+  navigation/kalman_filter.test.cpp \

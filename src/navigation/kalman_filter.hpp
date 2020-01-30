@@ -20,7 +20,7 @@
 #define NAVIGATION_KALMAN_FILTER_HPP_
 
 #include <random>
-#include <Eigen/Dense>
+#include "../lib/Eigen/Dense"
 
 #include "data/data.hpp"
 #include "utils/system.hpp"
