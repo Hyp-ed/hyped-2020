@@ -85,6 +85,7 @@ void FakeImu::getData(ImuData* data)
   // read_->clear();
   // time_->clear();
   State current_state = data_.getStateMachineData().current_state;
+
   if (current_state == State::kAccelerating) {
       read_ = &acc_val_read_;
       time_ = &acc_val_time_;
@@ -97,10 +98,11 @@ void FakeImu::getData(ImuData* data)
   }
   ref_time_ = utils::Timer::getTimeMicros();
   if (is_fail_) {
-    if (fail_state_ == current_state)     // if we are in current fail state
+    if (fail_state_ == current_state) {     // if we are in current fail state
       fail_now_ = true;
-    else
+    } else {
       fail_now_ = false;
+    }  
   }
   if (current_state == State::kCalibrating) {        // stationary states
     data = &acc_zero_;
@@ -129,11 +131,11 @@ ImuData FakeImu::getAccValue()
   uint8_t count = 0;
   while (!is_time) {
     if (count >= read_->size()) {         // last value if out of bounds
-      // vector_time = time_[count-1];
+      //vector_time = time_[count-1];
       vector_time = time_->at(count-1);
       is_time = true;                    // out of bounds
     } else {
-      // vector_time = time_[count];
+      //vector_time = time_[count];
       vector_time = time_->at(count);
     }
     if (current_time - ref_time_ >= vector_time) {
@@ -183,7 +185,7 @@ void FakeImu::readDataFromFile(std::string acc_file_path,
     std::string file_path;
     std::vector<uint32_t>* timestamp;
     std::vector<NavigationVector>* val_read;
-    std::vector<bool>* bool_read;
+    // std::vector<bool>* bool_read;
 
     if (i == 0) {
       file_path = acc_file_path;
@@ -202,49 +204,71 @@ void FakeImu::readDataFromFile(std::string acc_file_path,
       // bool_read = &em_val_operational_;
     }
 
-    // TODO(yeyao, meina): fix file path, throwing error
     std::ifstream file;
+    std::string line;
+
     file.open(file_path);
     if (!file.is_open()) {
       log_.ERR("Fake-IMU", "Wrong file path for argument: %d", i);
+    } else {
+      std::cout << "This shit works!! \n";
+    //cout << ("IMU_DATA", "Acc: x:%2.5f, y:%2.5f, z:%2.5f", accData[0], accData[1], accData[2]);
+    while (getline (file, line)) {
+      std::cout << line;
+      std::cout << "\n";
     }
+    }
+
+  
 
     NavigationVector value;
     int counter = 0;
     uint32_t temp_time;
-    std::string line;
+    //std::string line;
 
     while (getline(file, line)) {
       std::stringstream input(line);
       input >> temp_time;
-
+      
       timestamp->push_back(temp_time);
+
 
       input >> value[0];
       value[1] = 0.0;
       value[2] = 9.8;
+      
 
       val_read->push_back(addNoiseToData(value, noise_));
-      bool_read->push_back(1);      // always true
+      //bool_read->push_back(1);      // always true
+
 
       counter++;
+
     }
 
 
     file.close();
+
   }
+
+  // print rand index of vectors to test if rerad in
 }
+
+
 
 bool FakeImu::accCheckTime()
 {
   uint64_t now = utils::Timer::getTimeMicros();
+
   uint64_t time_span = (now - ref_time_) / 1000;
 
   if (time_span < kAccTimeInterval*acc_count_) {
     return false;
+
   }
   acc_count_ = time_span/kAccTimeInterval + 1;
   return true;
+
 }
 
 }}  // namespace hyped::sensors
