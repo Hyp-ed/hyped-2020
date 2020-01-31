@@ -34,37 +34,35 @@ using utils::System;
 
 namespace sensors {
 ImuManager::ImuManager(Logger& log)
-    : ImuManagerInterface(log),
+    : Thread(log),
       sys_(System::getSystem()),
       data_(Data::getInstance())
 {
-  old_timestamp_ = utils::Timer::getTimeMicros();
-
   if (!(sys_.fake_imu || sys_.fake_imu_fail)) {
     utils::io::SPI::getInstance().setClock(utils::io::SPI::Clock::k1MHz);
 
     for (int i = 0; i < data::Sensors::kNumImus; i++) {   // creates new real IMU objects
-      imu_[i] = new Imu(log, sys_.config->sensors.chip_select[i], false);
+      imu_[i] = new Imu(log, sys_.config->sensors.chip_select[i], 0x08);
     }
 
     utils::io::SPI::getInstance().setClock(utils::io::SPI::Clock::k20MHz);
-  } /* else if (sys_.fake_imu_fail) {
-    for (int i = 0; i < data::Sensors::kNumImus; i++) {
-      // change params to fail in kAcccelerating or kNominalBraking states
-      imu_[i] = new FakeImuFromFile(log,
-                                    "data/in/acc_state.txt",
-                                    "data/in/decel_state.txt",
-                                    "data/in/decel_state.txt", (i%2 == 0), false);
-    }
-  } else {
-    for (int i = 0; i < data::Sensors::kNumImus; i++) {
-      imu_[i] = new FakeImuFromFile(log,
-                                    "data/in/acc_state.txt",
-                                    "data/in/decel_state.txt",
-                                    "data/in/decel_state.txt", false, false);
-    }
   }
-  */
+  // else if (sys_.fake_imu_fail) {
+  //   for (int i = 0; i < data::Sensors::kNumImus; i++) {
+  //     // change params to fail in kAcccelerating or kNominalBraking states
+  //     imu_[i] = new FakeImuFromFile(log,
+  //                                   "data/in/acc_state.txt",
+  //                                   "data/in/decel_state.txt",
+  //                                   "data/in/decel_state.txt", (i%2 == 0), false);
+  //   }
+  // } else {
+  //   for (int i = 0; i < data::Sensors::kNumImus; i++) {
+  //     imu_[i] = new FakeImuFromFile(log,
+  //                                   "data/in/acc_state.txt",
+  //                                   "data/in/decel_state.txt",
+  //                                   "data/in/decel_state.txt", false, false);
+  //   }
+  // }
   log_.INFO("IMU-MANAGER", "imu data has been initialised");
 }
 
