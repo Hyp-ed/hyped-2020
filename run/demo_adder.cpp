@@ -26,7 +26,7 @@ Increment::Increment(int* n)
   }
 
 void Increment::run(){
-  for(int i = 0; i < 100000; i++){
+  for(int i = 0; i < 10000; i++){
     ++(*n_);
     std::cout << *n_ << std::endl;
   }
