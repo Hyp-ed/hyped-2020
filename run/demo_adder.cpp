@@ -1,84 +1,72 @@
+/*
+ * Authors: Kornelija Sukyte
+ * Organisation: HYPED
+ * Date: January 2020
+ *
+ *    Copyright 2020 HYPED
+ *    Licensed under the Apache License, Version 2.0 (the "License");
+ *    you may not use this file except in compliance with the License.
+ *    You may obtain a copy of the License at
+ *
+ *    http://www.apache.org/licen ses/LICENSE-2.0
+ *
+ *    Unless required by applicable law or agreed to in writing, software
+ *    distributed under the License is distributed on an "AS IS" BASIS,
+ *    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ *    See the License for the specific language governing permissions and
+ *    limitations under the License.
+ */
+
+#include <cstdio>
+#include <cstdint>
+
 #include "utils/concurrent/thread.hpp"
 #include "utils/concurrent/lock.hpp"
-#include "utils/timer.hpp"
-#include "utils/logger.hpp"
 #include "utils/system.hpp"
-#include <iostream>
 
 using hyped::utils::concurrent::Thread;
 using hyped::utils::concurrent::Lock;
-using hyped::utils::Timer;
 using hyped::utils::Logger;
 using hyped::utils::System;
 
+#define ITERATIONS 100000000
+
 class Increment : public Thread {
-  public:
-  Increment(int* n);
-  void run();
-  Logger log_;
-  int* n_;  
+ public:
+  Increment(uint64_t& counter_ptr): value_(counter_ptr) {}
+
+  void run() override {
+    for(uint64_t i = 0; i < ITERATIONS; i++){
+      ++value_;
+    }
+  }
+
+  uint64_t& value_;
 };
 
-Increment::Increment(int* n)
-  : log_(System::getLogger()),
-    n_(n)
-  {
-  }
-
-void Increment::run(){
-  for(int i = 0; i < 100000; i++){
-    ++(*n_);
-    std::cout << *n_ << std::endl;
-  }
-  
-}
-
 int main(int argc, char* argv[]){
-  hyped::utils::System::parseArgs(argc, argv);
+  System::parseArgs(argc, argv);
+  uint64_t number = 0;
 
-  int number = 0;
+  Increment* inrement_objects;
 
-  // std::cout << number << std::endl;
+  int num_threads = 1;
+  if (argc == 2) {
+    num_threads = std::atoi(argv[1]);
+  }
 
-  Increment* t1 = new Increment(&number);
-  Increment* t2 = new Increment(&number);
-  Increment* t3 = new Increment(&number);
-  Increment* t4 = new Increment(&number);
-  Increment* t5 = new Increment(&number);
-  Increment* t6 = new Increment(&number);
-  // Increment* t7 = new Increment(&number);
-  // Increment* t8 = new Increment(&number);
+  printf("using %d threads\n", num_threads);
 
-  t1->start();
-  t2->start();
-  t3->start();
-  t4->start();
-  t5->start();
-  t6->start();
-  // t7->start();
-  // t8->start();
+  inrement_objects = static_cast<Increment*>(malloc(num_threads*sizeof(Increment)));
+  for (int i = 0; i < num_threads; i++) {
+    new(&inrement_objects[i]) Increment(number);
+    inrement_objects[i].start();
+  }
 
-  // std::cout << number << std::endl;
+  for (int i = 0; i < num_threads; i++) {
+    inrement_objects[i].join();
+  }
 
-  t1->join();
-  t2->join();
-  t3->join();
-  t4->join();
-  t5->join();
-  t6->join();
-  // t7->join();
-  // t8->join();
-
-  // std::cout << number << std::endl;
-
-  delete t1;
-  delete t2;
-  delete t3;
-  delete t4;
-  delete t5;
-  delete t6;
-  // delete t7;
-  // delete t8;
-
+  printf("expected %ld vs %ld actual\n", num_threads*ITERATIONS, number);
   return 0;
 }

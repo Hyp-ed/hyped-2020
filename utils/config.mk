@@ -1,4 +1,4 @@
-CFLAGS:=-pthread -O2 -Wall
+CFLAGS:=-pthread -Og -Wall
 LFLAGS:=-lpthread -pthread
 COVERAGE_FLAGS=--coverage
 OBJS_DEBUG_DIR:=bin/debug
