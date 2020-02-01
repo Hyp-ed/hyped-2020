@@ -43,7 +43,8 @@ class Sum : public Thread {
     matrix_(matrix), row_counter_(row_counter), lck_(l)
   {}
 
-  void run() override {
+  void run() override
+  {
     while (row_counter_ < matrix_.size()) {
       lck_.lock();
       int current_row = row_counter_;
@@ -69,7 +70,8 @@ class Sum : public Thread {
   double sum_ = 0;
 };
 
-int main(int argc, char* argv[]){
+int main(int argc, char* argv[])
+{
   System::parseArgs(argc, argv);
   std::vector<std::vector<double> > matrix(ROWS, std::vector<double>(COLS, 1.0));
   unsigned int row_counter = 0;

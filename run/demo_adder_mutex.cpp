@@ -39,8 +39,9 @@ class Increment : public Thread {
  public:
   Increment(uint64_t& counter_ptr, Lock& l): value_(counter_ptr), lck_(l){}
 
-  void run() override {
-    for(uint64_t i = 0; i < ITERATIONS; i++){
+  void run() override
+  {
+    for (uint64_t i = 0; i < ITERATIONS; i++) {
       lck_.lock();
       ++value_;
       lck_.unlock();
@@ -51,7 +52,8 @@ class Increment : public Thread {
   Lock& lck_;
 };
 
-int main(int argc, char* argv[]){
+int main(int argc, char* argv[])
+{
   System::parseArgs(argc, argv);
   uint64_t number = 0;
   Lock lck;

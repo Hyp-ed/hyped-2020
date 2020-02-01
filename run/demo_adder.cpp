@@ -35,8 +35,9 @@ class Increment : public Thread {
  public:
   Increment(uint64_t& counter_ptr): value_(counter_ptr) {}
 
-  void run() override {
-    for(uint64_t i = 0; i < ITERATIONS; i++){
+  void run() override
+  {
+    for (uint64_t i = 0; i < ITERATIONS; i++) {
       ++value_;
     }
   }
@@ -44,7 +45,8 @@ class Increment : public Thread {
   uint64_t& value_;
 };
 
-int main(int argc, char* argv[]){
+int main(int argc, char* argv[])
+{
   System::parseArgs(argc, argv);
   uint64_t number = 0;
 
