@@ -12,7 +12,7 @@ GTEST_LIB_TARGET:=$(GTEST)/build/lib/libgtest.a
 LINT:=../utils/Lint/presubmit.py
 CPPCHECK_EXC_TARGET:=$(CPPCHECK)/cppcheck
 COVERAGE_DIR:=coverage
-GOOGLE_TEST_LIBS = -lgtest -Llib/googletest/build/lib/ -lgmock -Llib/googletest/build/lib/
+GOOGLE_TEST_LIBS = -lgtest -Llib/googletest/build/lib/
 
 CPPCHECK_EXEC=$(shell command -v cppcheck || echo ./$(CPPCHECK_EXC_TARGET))
 CPPCHECK_ENABLE_OPS=
@@ -70,12 +70,12 @@ staticcheck: $(TARGET) $(CPPCHECK_EXC_TARGET)
 
 $(TARGET): $(OBJS) lib/libtest.a
 	$(Echo) "Linking executable $(MAIN) into $@"
-	$(Verb) $(LL) -g -o0 -o $@ $(OBJS) $(LFLAGS) $(COVERAGE_FLAGS)
+	$(Verb) $(LL)  -o $@ $(OBJS) $(LFLAGS) $(COVERAGE_FLAGS)
 
 $(OBJS):  $(OBJS_DEBUG_DIR)/%.o: $(SRCS_DIR)/%.cpp $(GTEST_LIB_TARGET)
 	$(Echo) "Compiling $<"
 	$(Verb) mkdir -p $(dir $@)
-	$(Verb) $(CC) $(DEPFLAGS) $(CFLAGS)  -g -o0  -I../src -Ilib/googletest/googletest/include -Ilib/googletest/googlemock/include -o $@  -c $(INC_DIR) $<
+	$(Verb) $(CC) $(DEPFLAGS) $(CFLAGS) $(COVERAGE_FLAGS) -I../src -Ilib/googletest/googletest/include -o $@ -c $(INC_DIR) $<
 
 $(GTEST_LIB_TARGET): $(GTEST).tar.gz
 	$(Echo) "Building GTest Suite"
