@@ -41,8 +41,9 @@ class Increment : public Thread {
 
   void run() override {
     for(uint64_t i = 0; i < ITERATIONS; i++){
-      ScopedLock lock(&lck_);
+      lck_.lock();
       ++value_;
+      lck_.unlock();
     }
   }
 
