@@ -55,7 +55,7 @@ int main(int argc, char* argv[]){
   uint64_t number = 0;
   Lock lck;
 
-  Increment* inrement_objects;
+  Increment* increment_objects;
 
   int num_threads = 1;
   if (argc == 2) {
@@ -64,14 +64,14 @@ int main(int argc, char* argv[]){
 
   printf("using %d threads\n", num_threads);
 
-  inrement_objects = static_cast<Increment*>(malloc(num_threads*sizeof(Increment)));
+  increment_objects = static_cast<Increment*>(malloc(num_threads*sizeof(Increment)));
   for (int i = 0; i < num_threads; i++) {
-    new(&inrement_objects[i]) Increment(number, lck);
-    inrement_objects[i].start();
+    new(&increment_objects[i]) Increment(number, lck);
+    increment_objects[i].start();
   }
 
   for (int i = 0; i < num_threads; i++) {
-    inrement_objects[i].join();
+    increment_objects[i].join();
   }
 
   printf("expected %ld vs %ld actual\n", num_threads*ITERATIONS, number);
