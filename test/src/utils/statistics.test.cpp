@@ -27,7 +27,8 @@ using hyped::utils::math::RollingStatistics;
 
 TEST(statsTest, initsToZero)
 {
-  hyped::utils::math::RollingStatistics<float> rs = hyped::utils::math::RollingStatistics<float>(10);
+  hyped::utils::math::RollingStatistics<float> rs
+     = hyped::utils::math::RollingStatistics<float>(10);
   ASSERT_EQ(rs.getMean(), 0);
   ASSERT_EQ(rs.getSum(), 0);
   ASSERT_EQ(rs.getVariance(), 0);
@@ -38,7 +39,8 @@ TEST(statsTest, updateMoreThanWindowMovesWindow)
 {
   int window_size = 10;
   float val = 5;
-  hyped::utils::math::RollingStatistics<float> rs = hyped::utils::math::RollingStatistics<float>(window_size);
+  hyped::utils::math::RollingStatistics<float> rs = 
+    hyped::utils::math::RollingStatistics<float>(window_size);
   for (int i = 0; i < window_size - 1; i += 1) {
     rs.update(val);
   }
