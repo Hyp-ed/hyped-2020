@@ -5,3 +5,4 @@
 SRCS := \
   state_machine/dummy.test.cpp \
   utils/config.test.cpp \
+  utils/statistics.test.cpp \
