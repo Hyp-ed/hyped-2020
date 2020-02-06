@@ -43,11 +43,12 @@ int main(int argc, char* argv[]) {
     fake_imu_ = new FakeImu(log, acc_file_path, dec_file_path, em_file_path, false, fail_state);
   }
 
+
   for (int i = 0; i < 20; i++) {
     fake_imu_->getData(&imu);
     NavigationVector accData = imu.acc;
     log.INFO("IMU_DATA", "Acc: x:%2.5f, y:%2.5f, z:%2.5f", accData[0], accData[1], accData[2]);
     Thread::sleep(50); 
-    log.INFO("TEST", "are we segfaulting?");
+    //log.INFO("TEST", "are we segfaulting?");
   }
 }

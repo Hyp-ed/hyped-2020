@@ -191,63 +191,72 @@ void FakeImu::readDataFromFile(std::string acc_file_path,
       file_path = acc_file_path;
       timestamp = &acc_val_time_;
       val_read  = &acc_val_read_;
+
       // bool_read = &acc_val_operational_;
     } else if (i == 1) {
       file_path = dec_file_path;
       timestamp = &dec_val_time_;
       val_read  = &dec_val_read_;
+
       // bool_read = &dec_val_operational_;
     } else if (i == 2) {
       file_path = em_file_path;
       timestamp = &em_val_time_;
       val_read  = &em_val_read_;
+
       // bool_read = &em_val_operational_;
     }
 
     std::ifstream file;
     std::string line;
 
+    NavigationVector value;
+    //int counter = 0;
+    uint32_t temp_time;
+
     file.open(file_path);
     if (!file.is_open()) {
       log_.ERR("Fake-IMU", "Wrong file path for argument: %d", i);
     } else {
-      std::cout << "This shit works!! \n";
-    //cout << ("IMU_DATA", "Acc: x:%2.5f, y:%2.5f, z:%2.5f", accData[0], accData[1], accData[2]);
-    while (getline (file, line)) {
-      std::cout << line;
-      std::cout << "\n";
-    }
-    }
-
-  
-
-    NavigationVector value;
-    int counter = 0;
-    uint32_t temp_time;
-    //std::string line;
-
+      //std::cout << "This shit works!! \n";
     while (getline(file, line)) {
+      //std::cout << line << "\n";
       std::stringstream input(line);
-      input >> temp_time;
       
+      input >> temp_time;
       timestamp->push_back(temp_time);
-
 
       input >> value[0];
       value[1] = 0.0;
       value[2] = 9.8;
-      
 
       val_read->push_back(addNoiseToData(value, noise_));
+      
+    }
+    }
+
+    file.close();
+
+    //while (getline(file, line)) {
+      //std::stringstream input(line);
+      //input >> temp_time;
+      //timestamp->push_back(temp_time);
+
+      //input >> value[0];
+      //value[1] = 0.0;
+      //value[2] = 9.8;
+      
+
+      //val_read->push_back(addNoiseToData(value, noise_));
       //bool_read->push_back(1);      // always true
 
 
-      counter++;
+      //counter++;
 
-    }
+    //}
 
 
-    file.close();
+    //file.close();
 
   }
 
@@ -269,6 +278,6 @@ bool FakeImu::accCheckTime()
   acc_count_ = time_span/kAccTimeInterval + 1;
   return true;
 
-}
+}}}
 
-}}  // namespace hyped::sensors
+  // namespace hyped::sensors
