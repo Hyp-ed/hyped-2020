@@ -1,6 +1,6 @@
 #!/bin/bash
 set -e
-
+echo -n "small change"
 echo -n "Deploying git hooks: "
 HOOKDIR=.git/hooks
 
