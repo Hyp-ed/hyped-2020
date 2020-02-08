@@ -1,4 +1,3 @@
-
 # define VERBOSE to see executed commands
 # default build configuration
 TARGET=hyped
@@ -108,8 +107,8 @@ ifeq ($(RUNLINTER), 1)
 	$(Verb) -python2.7 utils/Lint/presubmit.py --workspace=run
 	$(Echo) "\nLinting test/"
 	$(Verb) $(MAKE) -C test lint --no-print-directory
-else
-	$(Echo) "Linting skipped, if linting has not been manually disabled, please check your python installation"
+else ifeq ($(PYTHONCHECK), 0)
+	$(Echo) $(error Check Python Version >=2.7 installed!)
 endif
 static:
 	$(Verb) $(MAKE) -C test staticcheck CPPCHECK_ENABLE_OPS=$(STATIC_ENABLE)
