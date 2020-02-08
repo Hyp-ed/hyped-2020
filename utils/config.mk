@@ -16,8 +16,9 @@ endif
 ROOT=$(shell git rev-parse --show-toplevel)
 
 ## Is 1 when python is installed
-PYTHONCHECK=$(shell python2.7 -V  >/dev/null 2>&1 | grep -q 'Python 2.7(.[0-9]+)*'  | echo '1' )
+PYTHON=$(shell python2.7 -V  >/dev/null 2>&1 && echo "1" )
 
+PYTHONCHECK=$(shell [[ -z "$(PYTHON)" ]] && echo "0" || echo "1")
 # Manual override for LINTER
 NOLINT=0
 

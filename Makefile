@@ -95,8 +95,8 @@ $(TEST_OBJS): $(OBJS_DEBUG_DIR)/%.o: $(SRCS_DIR)/%.cpp $(DEPENDENCIES)
 lint:
 ifeq ($(RUNLINTER), 1)
 	$(Verb) python2.7 utils/Lint/presubmit.py --workspace=src
-else
-	$(Echo) "Linting skipped, if linting has not been manually disabled, please check your python installation"
+else ifeq ($(PYTHONCHECK), 0)
+	$(error Cannot find Python 2.7, please check Python Version >=2.7  is installed )
 endif
 
 lintall:
@@ -108,7 +108,7 @@ ifeq ($(RUNLINTER), 1)
 	$(Echo) "\nLinting test/"
 	$(Verb) $(MAKE) -C test lint --no-print-directory
 else ifeq ($(PYTHONCHECK), 0)
-	$(Echo) $(error Check Python Version >=2.7 installed!)
+	$(error Cannot find Python 2.7, please check Python Version >=2.7  is installed )
 endif
 static:
 	$(Verb) $(MAKE) -C test staticcheck CPPCHECK_ENABLE_OPS=$(STATIC_ENABLE)
