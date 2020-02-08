@@ -94,6 +94,8 @@ lib/libtest.a:
 lint:
 ifeq ($(RUNLINTER), 1)
 	$(Verb) python2.7 $(LINT) --workspace=test/src
+else ifeq ($(PYTHONCHECK), 0)
+	$(error Cannot find Python 2.7, please check Python Version >=2.7  is installed )
 endif
 cleanlint:
 	$(Verb) rm -f .cpplint-cache

@@ -19,8 +19,13 @@ ROOT=$(shell git rev-parse --show-toplevel)
 PYTHON=$(shell python2.7 -V  >/dev/null 2>&1 && echo "1" )
 
 PYTHONCHECK=$(shell [[ -z "$(PYTHON)" ]] && echo "0" || echo "1")
+
 # Manual override for LINTER
-NOLINT=0
+# run "make VERBOSE=1" to see all commands
+ifndef NOLINT
+	NOLINT := 0
+endif
+
 
 # Checks manual override and python flag defined in config
 RUNLINTER=$(shell [[ $(NOLINT) == 0 && $(PYTHONCHECK) == 1 ]] && echo 1 )
