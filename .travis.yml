@@ -1,5 +1,10 @@
 language: cpp
 compiler: gcc
+cache:
+  directories:
+  - $HOME/test/lib/cppcheck
+  - $HOME/test/lib/googletest
+
 
 os:
   - linux
