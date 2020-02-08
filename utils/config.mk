@@ -13,3 +13,12 @@ else
 endif
 
 ROOT=$(shell git rev-parse --show-toplevel)
+
+## Is 1 when python is installed
+PYTHONCHECK=$(shell python2.7 -V  >/dev/null 2>&1 | grep -q 'Python 2.7(.[0-9]+)*'  | echo '1' )
+
+# Manual override for LINTER
+NOLINT=0
+
+# Checks manual override and python flag defined in config
+RUNLINTER=$(shell [[ $(NOLINT) == 0 && $(PYTHONCHECK) == 1 ]] && echo 1 )

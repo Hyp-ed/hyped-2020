@@ -4,7 +4,6 @@
 TARGET=hyped
 MAIN=run/main.cpp
 CROSS=0
-NOLINT=0
 
 #pass this option to run static checker with specified severity
 # e.g. make static STATIC_ENABLE=style
@@ -95,18 +94,23 @@ $(TEST_OBJS): $(OBJS_DEBUG_DIR)/%.o: $(SRCS_DIR)/%.cpp $(DEPENDENCIES)
 		$(Verb) mkdir -p $(dir $@)
 		$(Verb) $(CC) $(DEPFLAGS_DEBUG) $(CFLAGS) -o $@ -c $(INC_DIR) $< ${COVERAGE_FLAGS}
 lint:
-ifeq ($(NOLINT), 0)
+ifeq ($(RUNLINTER), 1)
 	$(Verb) python2.7 utils/Lint/presubmit.py --workspace=src
+else
+	$(Echo) "Linting skipped, if linting has not been manually disabled, please check your python installation"
 endif
 
 lintall:
+ifeq ($(RUNLINTER), 1)
 	$(Echo) "\nLinting src/"
 	$(Verb) -python2.7 utils/Lint/presubmit.py --workspace=src
 	$(Echo) "\nLinting run/"
 	$(Verb) -python2.7 utils/Lint/presubmit.py --workspace=run
 	$(Echo) "\nLinting test/"
 	$(Verb) $(MAKE) -C test lint --no-print-directory
-
+else
+	$(Echo) "Linting skipped, if linting has not been manually disabled, please check your python installation"
+endif
 static:
 	$(Verb) $(MAKE) -C test staticcheck CPPCHECK_ENABLE_OPS=$(STATIC_ENABLE)
 

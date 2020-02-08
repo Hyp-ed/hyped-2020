@@ -92,8 +92,9 @@ lib/libtest.a:
 	$(Verb) make -C .. test/lib/libtest.a
 
 lint:
+ifeq ($(RUNLINTER), 1)
 	$(Verb) python2.7 $(LINT) --workspace=test/src
-
+endif
 cleanlint:
 	$(Verb) rm -f .cpplint-cache
 
