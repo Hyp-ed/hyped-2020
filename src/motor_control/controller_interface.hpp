@@ -71,6 +71,9 @@ class ControllerInterface {
   atomic<int32_t>  actual_current_;
   atomic<int32_t>  actual_frequency_;
   Logger&          log_;
+  uint8_t          id_;
+  ControllerState  state_;
+  bool             critical_failure_;
 };
 
 }  // namespace motor_control
