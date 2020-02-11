@@ -1,5 +1,5 @@
 /*
- * Author: George Karabassis
+ * Author: Lukas Schaefer, Neil McBlane, George Karabassis
  * Co-Author: 
  * Organisation: HYPED
  * Date: 05/04/2019

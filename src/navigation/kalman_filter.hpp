@@ -1,5 +1,5 @@
 /*
- * Author: George Karabassis
+ * Author: Justus Rudolph, George Karabassis
  * Organisation: HYPED
  * Date: 30/03/2019
  * Description: Header for Kalman filter (interface for filter and filter setup)
