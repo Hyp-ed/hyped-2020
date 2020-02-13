@@ -134,6 +134,7 @@ clean-all: cleanlint cleantest clean
 clean:
 	$(Verb) rm -rf $(OBJS_DIR)/
 	$(Verb) rm -f $(TARGET)
+	$(Verb) touch test/lib/libtest.a && rm test/lib/libtest.a
 
 cleanlint:
 	$(Verb) rm -f .cpplint-cache
