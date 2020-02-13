@@ -19,13 +19,15 @@ testrunner
 .Trashes
 .VolumeIcon.icns
 .com.apple.timemachine.donotpresent
+.fuse_hidden*
 
 # Testing
 /utils/Lint/lintresults.txt
 /test/lib/googletest
 /test/lib/libtest.a
+/test/lib/cppcheck
+/test/coverage
 binmain.o
-
 # Other rubbish
 .cpplint-cache
 .vscode
@@ -36,3 +38,4 @@ binmain.o
 
 # libraries
 lib/Eigen
+lib/rapidjson

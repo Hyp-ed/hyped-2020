@@ -21,16 +21,19 @@
 #ifndef TELEMETRY_SENDLOOP_HPP_
 #define TELEMETRY_SENDLOOP_HPP_
 
+#include <rapidjson/writer.h>
+#include <string>
 #include "telemetry/main.hpp"
-#include "telemetry/telemetrydata/message.pb.h"
 #include "data/data.hpp"
 #include "utils/concurrent/thread.hpp"
+
+using rapidjson::Writer;
+using rapidjson::StringBuffer;
 
 namespace hyped {
 
 using utils::concurrent::Thread;
 using utils::Logger;
-using batteriesMsg = telemetry_data::ClientToServer::Batteries;
 
 namespace telemetry {
 
@@ -40,18 +43,8 @@ class SendLoop: public Thread {
     void run() override;
 
   private:
-    void packNavigationMessage(telemetry_data::ClientToServer& msg);
-    void packStateMachineMessage(telemetry_data::ClientToServer& msg);
-    void packMotorsMessage(telemetry_data::ClientToServer& msg);
-    void packBatteriesMessage(telemetry_data::ClientToServer& msg);
-    template<std::size_t SIZE>
-    void packLpBatteryDataMessage(batteriesMsg& batteries_msg, std::array<data::BatteryData, SIZE>& battery_data_array); // NOLINT
-    template<std::size_t SIZE>
-    void packHpBatteryDataMessage(batteriesMsg& batteries_msg, std::array<data::BatteryData, SIZE>& battery_data_array); // NOLINT
-    void packBatteryDataMessageHelper(batteriesMsg::BatteryData& battery_data_msg, data::BatteryData& battery_data); // NOLINT
-    void packSensorsMessage(telemetry_data::ClientToServer& msg);
-    void packTemperatureMessage(telemetry_data::ClientToServer& msg);
-    void packEmergencyBrakesMessage(telemetry_data::ClientToServer& msg);
+    std::string convertStateMachineState(data::State state);
+    std::string convertModuleStatus(data::ModuleStatus module_status);
     Main&                   main_ref_;
     data::Data&             data_;
 };

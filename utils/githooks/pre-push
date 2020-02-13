@@ -1,0 +1,18 @@
+
+#!/bin/bash
+
+echo "Running pre-push hook"
+
+
+if command -v hostnamectl>/dev/null; then
+  if hostnamectl | grep beaglebone>/dev/null; then
+    OPTION=""
+  else
+    OPTION="-j4"
+  fi
+else
+  OPTION="-j4"
+fi
+
+# run tests
+make testrunner "$OPTION"
