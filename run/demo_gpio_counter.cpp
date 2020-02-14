@@ -12,7 +12,7 @@ using hyped::utils::Logger;
 using hyped::utils::System;
 using hyped::utils::Timer;
 
-constexpr int kMaxTime = 4;
+constexpr int kMaxTime = 32;
 
 int main(int argc, char* argv[]) {
   hyped::utils::System::parseArgs(argc, argv);
@@ -29,11 +29,12 @@ int main(int argc, char* argv[]) {
   uint64_t t0 = Timer::getTimeMicros();
   while (Timer::getTimeMicros() - t0 < kMaxTime*1000000) {
     while (!pin) {
-      gpio.read();
+      pin = gpio.read();
     }
      while (pin == 1) {
       pin = gpio.read();
-    }if (count%10000 == 0)
+    }
+    if (count%1000 == 0)
       log.INFO("Gpio_counter_test", "count: %5dk, time: %fs", count/1000,
                                                               (Timer::getTimeMicros() - t0)/1e6);
     count++;  // this should only increase after reading high and low pulse consecutively
