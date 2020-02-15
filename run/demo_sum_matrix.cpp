@@ -43,7 +43,8 @@ class Sum : public Thread {
     matrix_(matrix), row_counter_(row_counter), lck_(l)
   {}
 
-  void run() override {
+  void run() override
+  {
     while (row_counter_ < matrix_.size()) {
       // lck_.lock();
       int current_row = row_counter_;
@@ -69,13 +70,14 @@ class Sum : public Thread {
   double sum_ = 0;
 };
 
-int main(int argc, char* argv[]){
+int main(int argc, char* argv[])
+{
   System::parseArgs(argc, argv);
   std::vector<std::vector<double> > matrix(ROWS, std::vector<double>(COLS, 1.0));
   unsigned int row_counter = 0;
   Lock lck;
 
-  Sum* increment_objects;
+  Sum* sum_objects;
 
   int num_threads = 1;
   if (argc == 2) {
@@ -86,17 +88,17 @@ int main(int argc, char* argv[]){
   Timer timer;
   timer.start();
 
-  increment_objects = static_cast<Sum*>(malloc(num_threads*sizeof(Sum)));
+  sum_objects = static_cast<Sum*>(malloc(num_threads*sizeof(Sum)));
   for (int i = 0; i < num_threads; i++) {
-    new(&increment_objects[i]) Sum(matrix, row_counter, lck);
-    increment_objects[i].start();
+    new(&sum_objects[i]) Sum(matrix, row_counter, lck);
+    sum_objects[i].start();
   }
 
   double total_sum = 0;
   for (int i = 0; i < num_threads; i++) {
-    increment_objects[i].join();
-    total_sum += increment_objects[i].get_sum();
-    printf("Thread%d sum: %.0f\n", i, increment_objects[i].get_sum());
+    sum_objects[i].join();
+    total_sum += sum_objects[i].get_sum();
+    printf("Thread%d sum: %.0f\n", i, sum_objects[i].get_sum());
   }
   timer.stop();
 
