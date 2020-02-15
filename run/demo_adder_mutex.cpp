@@ -33,7 +33,7 @@ using hyped::utils::Timer;
 using hyped::utils::Logger;
 using hyped::utils::System;
 
-#define ITERATIONS 10000000
+#define ITERATIONS 100000
 
 class Increment : public Thread {
  public:
@@ -41,9 +41,10 @@ class Increment : public Thread {
 
   void run() override {
     for(uint64_t i = 0; i < ITERATIONS; i++){
-      lck_.lock();
-      ++value_;
       lck_.unlock();
+      ++value_;
+      printf("Value after increment: %d\n", i);
+      lck_.lock();
     }
   }
 

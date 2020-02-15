@@ -29,7 +29,7 @@ using hyped::utils::concurrent::Lock;
 using hyped::utils::Logger;
 using hyped::utils::System;
 
-#define ITERATIONS 10000000
+#define ITERATIONS 100
 
 class Increment : public Thread {
  public:

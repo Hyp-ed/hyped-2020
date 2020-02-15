@@ -35,7 +35,7 @@ using hyped::utils::Logger;
 using hyped::utils::System;
 
 #define ROWS 1000
-#define COLS 1000000
+#define COLS 100000
 
 class Sum : public Thread {
  public:
@@ -45,10 +45,10 @@ class Sum : public Thread {
 
   void run() override {
     while (row_counter_ < matrix_.size()) {
-      lck_.lock();
+      // lck_.lock();
       int current_row = row_counter_;
       ++row_counter_;
-      lck_.unlock();
+      // lck_.unlock();
 
       // Add all the elements in current row to the total sum
       for (auto &&x : matrix_[current_row]) {
