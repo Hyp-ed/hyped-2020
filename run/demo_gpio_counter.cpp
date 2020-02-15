@@ -2,6 +2,7 @@
 #include <atomic>
 #include <cstdio>
 
+#include "sensors/gpio_counter.hpp"
 #include "utils/concurrent/thread.hpp"
 #include "utils/io/gpio.hpp"
 #include "utils/logger.hpp"
@@ -9,6 +10,8 @@
 #include "utils/timer.hpp"
 #include "data/data.hpp"
 
+using hyped::data::StripeCounter;
+using hyped::sensors::GpioCounter;
 using hyped::utils::concurrent::BusyThread;
 using hyped::utils::concurrent::Thread;
 using hyped::utils::io::GPIO;
@@ -17,7 +20,8 @@ using hyped::utils::System;
 using hyped::utils::Timer;
 
 constexpr int kMaxTime = 32;
-constexpr int kNumWorkers = 1;  // Number of busy threads
+constexpr int kNumWorkers = 2;  // Number of busy threads
+constexpr int kPin = 67;
 
 class SimpleCounter : public Thread {
  public:
@@ -36,7 +40,7 @@ SimpleCounter::SimpleCounter() : sys_(System::getSystem()), count_(0) { /* EMPTY
 
 void SimpleCounter::run()
 {
-  GPIO gpio(67, hyped::utils::io::gpio::kIn);  // pin 67 as read
+  GPIO gpio(kPin, hyped::utils::io::gpio::kIn);  // pin 67 as read
   int pin = 0;
   while (sys_.running_) {
     while (!pin && sys_.running_) {
@@ -60,7 +64,7 @@ int main(int argc, char* argv[]) {
     worker->start();
   }
 
-  SimpleCounter counter;
+  GpioCounter counter(log, kPin);
   counter.start();
 
   Thread::sleep(500);
@@ -76,10 +80,13 @@ int main(int argc, char* argv[]) {
       }
     } while (input == '\n' || input == '\r');
 
-    if (input == 'c')
-      std::printf("Pulse count: %d\n\n", counter.get_count());
-    if (input == 'r')
-      counter.reset_count();
+    if (input == 'c') {
+      StripeCounter sc;
+      counter.getData(&sc);
+      std::printf("Pulse count: %d\n\n", sc.count.value);
+    }
+    // if (input == 'r')
+    //   counter.reset_count();
   } while (input != 'q');
 
   log.INFO("Gpio_counter_test", "Stopping the counter");
@@ -92,5 +99,5 @@ int main(int argc, char* argv[]) {
     delete worker;
   }
 
-  log.INFO("Gpio_counter_test", "Final pulse count %d", counter.get_count());
+  // log.INFO("Gpio_counter_test", "Final pulse count %d", counter.get_count());
 } // end of main
