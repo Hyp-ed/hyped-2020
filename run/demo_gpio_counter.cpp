@@ -1,3 +1,4 @@
+#include <array>
 #include <atomic>
 #include <cstdio>
 
@@ -16,6 +17,7 @@ using hyped::utils::System;
 using hyped::utils::Timer;
 
 constexpr int kMaxTime = 32;
+constexpr int kNumWorkers = 1;  // Number of busy threads
 
 class SimpleCounter : public Thread {
  public:
@@ -52,8 +54,11 @@ int main(int argc, char* argv[]) {
   Logger  log = System::getLogger();
   System& sys = System::getSystem();
 
-  BusyThread* worker = new BusyThread();
-  worker->start();
+  std::array<BusyThread*, kNumWorkers> workers;
+  for (BusyThread* worker : workers) {
+    worker = new BusyThread();
+    worker->start();
+  }
 
   SimpleCounter counter;
   counter.start();
@@ -83,7 +88,9 @@ int main(int argc, char* argv[]) {
 
   log.INFO("Gpio_counter_test", "Stopping the worker");
   // TODO(Brano): Stop BusyThread via System::running_
-  delete worker;
+  for (BusyThread* worker : workers) {
+    delete worker;
+  }
 
   log.INFO("Gpio_counter_test", "Final pulse count %d", counter.get_count());
 } // end of main
