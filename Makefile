@@ -42,7 +42,7 @@ ifeq ($(CROSS), 0)
 else
 	CC:=hyped-cross-g++
 	CFLAGS:=$(CFLAGS) -DARCH_32
-	LFLAGS:= $(LFLAGS) -static
+	LFLAGS:= -Wl,--whole-archive $(LFLAGS) -Wl,--no-whole-archive -static
 $(info cross-compiling)
 endif
 
@@ -117,7 +117,7 @@ testrunner: test/lib/libtest.a
 	$(VERB) $(MAKE) -C test runner
 
 testrunner-all: test/lib/libtest.a
-	$(VERB) $(MAKE) -C test runnerall 
+	$(VERB) $(MAKE) -C test runnerall
 
 testrunner-filter: test/lib/libtest.a
 	$(VERB) $(MAKE) -C test runnerfilter GOOGLE_TEST_FILTERS=$(GTEST_FILTERS)
