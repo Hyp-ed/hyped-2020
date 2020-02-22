@@ -22,11 +22,13 @@
 
 #include <cstdint>
 #include <array>
+#include <vector>
 #include "utils/math/vector.hpp"
 #include "data/data_point.hpp"
 #include "utils/concurrent/lock.hpp"
 
 using std::array;
+using std::vector;
 
 namespace hyped {
 
@@ -73,8 +75,11 @@ struct Sensor {
 struct ImuData : public Sensor {
   NavigationVector acc;
 
-  static constexpr int kFifoSize = 85;
-  array<NavigationVector, kFifoSize> fifo;
+  std::vector<NavigationVector> fifo;
+};
+
+struct EncoderData : public Sensor {
+  NavigationType disp;
 };
 
 struct StripeCounter : public Sensor {
@@ -87,9 +92,11 @@ struct TemperatureData : public Sensor {
 
 struct Sensors : public Module {
   static constexpr int kNumImus = 4;
+  static constexpr int kNumEncoders = 4;
   static constexpr int kNumKeyence = 2;
 
   DataPoint<array<ImuData, kNumImus>> imu;
+  DataPoint<array<EncoderData, kNumEncoders>> encoder;
   array<StripeCounter, kNumKeyence>  keyence_stripe_counter;
 };
 
@@ -229,6 +236,11 @@ class Data {
   DataPoint<array<ImuData, Sensors::kNumImus>> getSensorsImuData();
 
   /**
+   * @brief retrieves encoder data from Sensors
+   */
+  DataPoint<array<EncoderData, Sensors::kNumEncoders>> getSensorsEncoderData();
+
+  /**
    * @brief retrieves gpio_counter data from Sensors
    */
   array<StripeCounter, Sensors::kNumKeyence> getSensorsKeyenceData();
@@ -241,6 +253,10 @@ class Data {
    * @brief      Should be called to update sensor imu data.
    */
   void setSensorsImuData(const DataPoint<array<ImuData, Sensors::kNumImus>>& imu);
+  /**
+   * @brief      Should be called to update sensor encoder data.
+   */
+  void setSensorsEncoderData(const DataPoint<array<EncoderData, Sensors::kNumEncoders>>& imu);
   /**
    * @brief      Should be called to update sensor keyence data.
    */

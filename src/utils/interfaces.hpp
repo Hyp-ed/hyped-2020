@@ -38,8 +38,8 @@
 // e.g.       V(utils::config::fancy::typed::here, MyFancyInterface)
 #define INTERFACE_LIST(V) \
   V(sensors, ImuInterface) \
-  V(demo, DemoInterface)
-
+  V(motor_control, ControllerInterface) \
+  V(demo, DemoInterface) 
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 // Below is some supporting code, no need to touch this when adding new interfaces
