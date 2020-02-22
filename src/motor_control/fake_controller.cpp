@@ -17,3 +17,97 @@
  */
 
 #include "fake_controller.hpp"
+
+namespace hyped {
+namespace motor_control {
+
+void FakeController::initController()
+{
+}
+
+void FakeController::configure()
+{
+}
+
+void FakeController::enterPreOperational()
+{
+}
+
+void FakeController::enterOperational()
+{
+}
+
+void FakeController::checkState()
+{
+}
+
+void FakeController::sendTargetCurrent(int32_t target_current)
+{
+}
+
+void FakeController::sendTargetFrequency(int32_t target_velocity)
+{
+}
+
+void FakeController::quickStop()
+{
+}
+
+void FakeController::healthCheck()
+{
+}
+
+int32_t FakeController::getCurrent()
+{
+}
+
+int32_t FakeController::getFrequency()
+{
+}
+
+ControllerState FakeController::getControllerState()
+{
+}
+
+uint8_t FakeController::getNodeID()
+{
+}
+
+bool FakeController::getFailure()
+{
+}
+
+uint8_t FakeController::getMotorTemp()
+{
+}
+
+uint8_t FakeController::getControllerTemp()
+{
+}
+
+void FakeController::registerController()
+{
+}
+
+void FakeController::updateMotorTemp()
+{
+}
+
+void FakeController::updateControllerTemp()
+{
+}
+
+void FakeController::updateActualCurrent()
+{
+}
+
+void FakeController::updateActualFrequency()
+{
+}
+
+void FakeController::throwCriticalFailure()
+{
+}
+
+}
+}
