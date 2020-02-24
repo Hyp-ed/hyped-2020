@@ -27,7 +27,7 @@ constexpr float KalmanFilter::kTubeMeasurementVar;
 constexpr float KalmanFilter::kElevatorMeasurementVar;
 constexpr float KalmanFilter::kStationaryMeasurementVar;
 
-KalmanFilter::KalmanFilter(unsigned int n/*=3*/, unsigned int m/*=1*/, unsigned int k/*=0*/)
+KalmanFilter::KalmanFilter(unsigned int n/*=4*/, unsigned int m/*=2*/, unsigned int k/*=0*/)
   : n_(n),
     m_(m),
     k_(k),
@@ -43,7 +43,7 @@ void KalmanFilter::setup()
 
   // check system navigation run for R setup
   System &sys = System::getSystem();
-  MatrixXf R = MatrixXf::Zero(m_, m_);;
+  MatrixXf R = MatrixXf::Zero(m_, m_);
   if (sys.tube_run || sys.outside_run) R = createTubeMeasurementCovarianceMatrix();
   else if (sys.elevator_run) R = createElevatorMeasurementCovarianceMatrix();
   else if (sys.stationary_run) R = createStationaryMeasurementCovarianceMatrix();
@@ -100,25 +100,39 @@ const MatrixXf KalmanFilter::createInitialErrorCovarianceMatrix()
 
 const MatrixXf KalmanFilter::createStateTransitionMatrix(double dt)
 {
+  // TODO(Justas) - create alpha
+  double alpha = 0.5;  // 0.5 is just a dummy value, needs changing
+
   MatrixXf A = MatrixXf::Zero(n_, n_);
-  double acc_ddt = 0.5 * dt * dt;
-  //  number of values for each acc, vel, pos: usually 1 or 3
-  unsigned int n_val = n_ / 3;
-
-  for (unsigned int i = 0; i < n_val; i++) {
-      // compute acc rows
-      A(i, i) = 1.;
-
-      // compute vel rows
-      A(i + n_val, i) = dt;
-      A(i + n_val, i + n_val) = 1.;
-
-      // compute pos rows
-      A(i + 2 * n_val, i) = acc_ddt;
-      A(i + 2 * n_val, i + n_val) = dt;
-      A(i + 2 * n_val, i + 2 * n_val) = 1.;
+  for (unsigned int i = 0; i < n_; i++) {
+    A(i, i) = 1;
   }
-  A(0, 0) = 1.0;
+
+  A(1, 0) = dt;
+
+  A(2, 0) = dt;
+
+  A(3, 0) = 0.5 * dt * dt;
+  A(3, 1) = dt * alpha;
+  A(3, 2) = dt * (1 - alpha);
+  // double acc_ddt = 0.5 * dt * dt;
+  // //  number of values for each acc, vel, pos: usually 1 or 3
+  // unsigned int n_val = n_ / 3;
+
+  // for (unsigned int i = 0; i < n_val; i++) {
+  //     // compute acc rows
+  //     A(i, i) = 1.;
+
+  //     // compute vel rows
+  //     A(i + n_val, i) = dt;
+  //     A(i + n_val, i + n_val) = 1.;
+
+  //     // compute pos rows
+  //     A(i + 2 * n_val, i) = acc_ddt;
+  //     A(i + 2 * n_val, i + n_val) = dt;
+  //     A(i + 2 * n_val, i + 2 * n_val) = 1.;
+  // }
+  // A(0, 0) = 1.0;
 
   return A;
 }
@@ -126,9 +140,11 @@ const MatrixXf KalmanFilter::createStateTransitionMatrix(double dt)
 const MatrixXf KalmanFilter::createMeasurementMatrix()
 {
   MatrixXf H = MatrixXf::Zero(m_, n_);
-  for (unsigned int i = 0; i < m_; i++) {
-    H(i, i) = 1.;
-  }
+  // for (unsigned int i = 0; i < m_; i++) {
+  //   H(i, i) = 1.;
+  // }
+  H(0, 0) = 1;
+  H(1, 3) = 1;
   return H;
 }
 

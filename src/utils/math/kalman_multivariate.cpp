@@ -23,18 +23,19 @@
 namespace hyped {
     namespace utils {
         namespace math {
-
             KalmanMultivariate::KalmanMultivariate(unsigned int n, unsigned int m)
                 : n_(n),
                   m_(m),
-                  k_(0)
+                  k_(0),
+                  iteration_(0)
             {}
 
             KalmanMultivariate::KalmanMultivariate(unsigned int n, unsigned int m,
                                                    unsigned int k)
                 : n_(n),
                   m_(m),
-                  k_(k)
+                  k_(k),
+                  iteration_(0)
             {}
 
             void KalmanMultivariate::setDynamicsModel(MatrixXf& A, MatrixXf& Q)
@@ -87,34 +88,78 @@ namespace hyped {
                 I_ = MatrixXf::Identity(n_, n_);
             }
 
-            void KalmanMultivariate::predict()
+            void KalmanMultivariate::updateC() 
             {
-                x_ = A_ * x_;
-                P_ = A_ * P_ * A_.transpose() + Q_;
+                int new_window_size = std::min(iteration_, window_size_);
+                int prev_window_size = std::min(iteration_ - 1, window_size_);
+
+                // new_window_size will be smaller if less than 'window_size_' iterations happened
+                if ((int)delta_zs_.size() > window_size_) {
+                    VectorXf delta_z_old = delta_zs_.front();
+                    delta_zs_.pop_front();
+                    C_ = C_ - (delta_z_old * delta_z_old.transpose()) / (float)prev_window_size;
+                    // assert((int)delta_zs.size() == window_size_);
+                }
+
+                if ((int)delta_zs_.size() > 0) {
+                    C_ = C_ * (float)(prev_window_size / new_window_size) + 
+                    (delta_zs_.back() * delta_zs_.back().transpose()) / (float)new_window_size;
+                }
             }
 
-            void KalmanMultivariate::predict(VectorXf& u)
+            void KalmanMultivariate::updateQR() 
+            {
+                updateC();
+                // TODO(Justas) figure this part out
+                if (iteration_ >= window_size_) {
+                    // we might want to just use the initial matrices for the first few iterations
+                    Q_ = K_ * C_ * K_.transpose();
+                    R_ = C_ - H_ * P_ * H_.transpose();
+                } 
+            }
+
+            void KalmanMultivariate::predict_state()
+            {
+                x_ = A_ * x_;
+            }
+
+            void KalmanMultivariate::predict_state(VectorXf& u)
             {
                 x_ = A_ * x_ + B_ * u;
-                P_ = (A_ * P_ * A_.transpose()) + Q_;
+            }
+
+            void KalmanMultivariate::predict_covariance()
+            {
+                updateQR();
+                P_ = A_ * P_ * A_.transpose() + Q_;
             }
 
             void KalmanMultivariate::correct(VectorXf& z)
             {
-                MatrixXf K = (P_ * H_.transpose()) * (H_ * P_ * H_.transpose() + R_).inverse();
-                x_ = x_ + K * (z - H_ * x_);
-                P_ = (I_ - K * H_) * P_;
+                K_ = (P_ * H_.transpose()) * (H_ * P_ * H_.transpose() + R_).inverse();
+                x_ = x_ + K_ * (z - H_ * x_);
+                P_ = (I_ - K_ * H_) * P_;
             }
 
             void KalmanMultivariate::filter(VectorXf& z)
             {
-                predict();
+                iteration_++;
+
+                predict_state();
+                delta_zs_.push_back(z - H_ * x_);
+                predict_covariance();
+                
                 correct(z);
             }
 
             void KalmanMultivariate::filter(VectorXf& u, VectorXf& z)
             {
-                predict(u);
+                iteration_++;
+                
+                predict_state(u);
+                delta_zs_.push_back(z - H_ * x_);
+                predict_covariance();
+                
                 correct(z);
             }
 

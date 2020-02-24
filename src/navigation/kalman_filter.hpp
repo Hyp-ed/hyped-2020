@@ -40,7 +40,7 @@ namespace navigation {
 class KalmanFilter
 {
   public:
-    KalmanFilter(unsigned int n = 3, unsigned int m = 1, unsigned int k = 0);
+    KalmanFilter(unsigned int n = 4, unsigned int m = 2, unsigned int k = 0);
     void setup();
     void updateStateTransitionMatrix(double dt);
     void updateMeasurementCovarianceMatrix(double var);

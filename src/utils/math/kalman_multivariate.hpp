@@ -21,15 +21,17 @@
 #ifndef UTILS_MATH_KALMAN_MULTIVARIATE_HPP_
 #define UTILS_MATH_KALMAN_MULTIVARIATE_HPP_
 
+#include <queue>
 #include <Eigen/Dense>
 
 using Eigen::MatrixXf;
 using Eigen::VectorXf;
 
+
+
 namespace hyped {
     namespace utils {
         namespace math {
-
             /**
              * @brief    This class is for filtering the data from sensors to smoothen it.
              */
@@ -158,31 +160,48 @@ namespace hyped {
               unsigned int m_;                 // measurement dimension
               unsigned int k_;                 // control dimension (0 if not set)
 
+              /* for adaptive filtering */
+              int iteration_;                  // keeps track of the current iteration of the filtering process
+              // TODO(Justas) figure out window size - if it is constant, or changes over the run
+              static constexpr int window_size_ = 10;  // number of past steps to use for the adaptive update
+
               /* dynamics model matrices */
-              MatrixXf A_;                    // state transition matrix: n x n
-              MatrixXf B_;                    // control matrix: n x k
-              MatrixXf Q_;                    // process noise covariance: n x n
+              MatrixXf A_;                     // state transition matrix: n x n
+              MatrixXf B_;                     // control matrix: n x k
+              MatrixXf Q_;                     // process noise covariance: n x n
 
               /* measurement model matrices */
-              MatrixXf H_;                    // measurement matrix: m x n
-              MatrixXf R_;                    // measurement noise covariance: m x m
+              MatrixXf H_;                     // measurement matrix: m x n
+              MatrixXf R_;                     // measurement noise covariance: m x m
 
               /* state estimates */
-              VectorXf x_;                    // state vector: n x 1
-              MatrixXf P_;                    // state covariance: n x n
-              MatrixXf I_;                    // identity matrix: n x n
+              VectorXf x_;                     // state vector: n x 1
+              MatrixXf P_;                     // state covariance: n x n
+              MatrixXf I_;                     // identity matrix: n x n
+
+              /* Kalman gain */
+              MatrixXf K_;                     // Kalman gain n x m
+
+              /* adaptive filtering */
+              std::deque<VectorXf>delta_zs_;   // measurement innovation vectors of past iterations
+              MatrixXf C_;                     // mean of measurement innovation covariances of past few iterations: m x m
 
               /**
-               * @brief    Predict state belief with covariance based on dynamics (without control)
+               * @brief    Predict state based on dynamics (without control)
                */
-              void predict();
+              void predict_state();
 
               /**
-               * @brief    Predict state belief with covariance based on dynamics (with control)
-               *
-               * @param[in] u                       control vector
+              * @brief     Predict state based on dynamics (with control)
+              *
+              * @param[in] u                        control vector
+              */
+              void predict_state(VectorXf& u);
+
+              /**
+               * @brief    Predict covariance based on dynamics
                */
-              void predict(VectorXf& u);
+              void predict_covariance();
 
               /**
                * @brief    Correct state belief with covariance based on measurement
@@ -190,6 +209,16 @@ namespace hyped {
                * @param[in] z                       measurement vector
                */
               void correct(VectorXf& z);
+
+              /**
+              * @brief     Do a recursive update to the matrix C
+              */
+              void updateC();
+
+              /**
+              * @brief     Update process noise covariance Q and measurement noise covariance R
+              */
+              void updateQR();
             };
         }
     }
