@@ -35,7 +35,7 @@ class FakeController: public ControllerInterface {
   /**
    * @brief  Initialises private fields in the controller
    */
-  void initController() override;
+  void initController(Logger& log, uint8_t id, bool isFaulty) override;
   /**
    * @brief  Applies Configuration settings
    */
@@ -133,6 +133,9 @@ class FakeController: public ControllerInterface {
   uint8_t          id_;
   ControllerState  state_;
   bool             critical_failure_;
+  uint8_t          motor_temp_;
+  uint8_t          controller_temp_;
+  bool             isFaulty_;
 };
 
 }

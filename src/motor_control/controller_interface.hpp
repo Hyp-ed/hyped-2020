@@ -43,7 +43,7 @@ enum ControllerState {
 
 class ControllerInterface {
  public:
-  virtual void initController() = 0;
+  virtual void initController(Logger& log, uint8_t id, bool isFaulty) = 0;
   virtual void configure() = 0;
   virtual void enterOperational() = 0;
   virtual void enterPreOperational() = 0;
@@ -74,6 +74,9 @@ class ControllerInterface {
   uint8_t          id_;
   ControllerState  state_;
   bool             critical_failure_;
+  uint8_t          motor_temp_;
+  uint8_t          controller_temp;
+  bool             isFaulty_;
 };
 
 }  // namespace motor_control
