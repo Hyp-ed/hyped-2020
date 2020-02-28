@@ -13,6 +13,7 @@ include $(HELPER)/config.mk
 include $(HELPER)/build.mk
 include $(HELPER)/libs.mk
 include $(HELPER)/test.mk
+include $(HELPER)/lit.mk
 
 .DEFAULT_GOAL := default
 default: $(DEPENDENCIES) lint $(TARGET)

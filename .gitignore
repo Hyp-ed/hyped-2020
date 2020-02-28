@@ -1,5 +1,6 @@
 # binaries
 bin
+*.pyc
 
 # Executables
 *.exe
@@ -37,6 +38,7 @@ binmain.o
 *.ipch.icloud
 .ccls
 .ccls-cache
+test/lit/*/Output
 
 # libraries
 lib/Eigen

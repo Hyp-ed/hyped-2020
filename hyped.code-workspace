@@ -20,6 +20,7 @@
       "**/testrunner*": true,
       "hyped": true,
       "hyped.exe": true,
+      "*.pyc": true,
     },
     "files.insertFinalNewline": true,
     "files.trimFinalNewlines": true,
