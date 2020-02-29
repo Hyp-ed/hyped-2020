@@ -43,3 +43,4 @@ test/lit/*/Output
 # libraries
 lib/Eigen
 lib/rapidjson
+utils/Lit

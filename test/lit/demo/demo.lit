@@ -1,3 +1,6 @@
 ; REQUIRES: hyped-present
 
-; RUN: %{hyped} -v &> %t1
+; RUN: cd $ROOT ; %{hyped} -v  &> %t1
+; RUN: FileCheck  -input-file=%t1 %s
+
+; CHECK: service

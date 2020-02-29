@@ -28,6 +28,7 @@
 #include <cstring>
 
 #include "utils/config.hpp"
+#include "utils/concurrent/thread.hpp"
 
 #define DEFAULT_CONFIG  "config.txt"
 
@@ -76,6 +77,24 @@ void printUsage()
     "    --telemetry_off\n"
     "");
 }
+
+class Timeout : public concurrent::Thread {
+ public:
+  explicit Timeout(int sec): sec_(sec) {}
+  void run() override
+  {
+    System::getLogger().ERR("TIMEOUT", "starting for %d secs", sec_);
+    concurrent::Thread::sleep(sec_ * 1000);
+    System::getLogger().ERR("TIMEOUT", "shuting down");
+
+    // abort();
+    exit(0);
+  }
+
+ private:
+  int sec_;
+};
+
 }   // namespace hyped::utils::System
 
 System::~System()
@@ -354,6 +373,10 @@ System::System(int argc, char* argv[])
 
   log_    = new Logger(verbose, debug);
   system_ = this;   // own address
+
+  // start timer
+  auto timeout = new Timeout(5);
+  timeout->start();
 }
 
 System* System::system_ = 0;
