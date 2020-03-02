@@ -12,11 +12,13 @@ endif
 
 UNAME := $(shell uname)
 ifneq ($(UNAME),Linux)
-  # assume Windows
-  UNAME   += Windows
-  CFLAGS  += -std=gnu++11
-else
   CFLAGS  += -std=c++11
+else
+ifneq ($(UNAME),Darwin)
+  # assume Windows
+  UNAME   := Windows
+endif
+  CFLAGS  += -std=gnu++11
 endif
 
 # run "make VERBOSE=1" to see all commands
