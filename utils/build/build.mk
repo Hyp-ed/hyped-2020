@@ -13,8 +13,7 @@ else
 endif
 
 ifneq ($(UNAME),Linux)
-  # assume Windows
-  UNAME   := Windows
+  # assume Darwin or Windows
   CFLAGS  += -DWIN -std=gnu++11
 else
   CFLAGS  += -std=c++11
