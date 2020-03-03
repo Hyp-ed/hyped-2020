@@ -116,12 +116,13 @@ namespace navigation {
        */
       void calibrateGravity();
       /**
-       * @brief Apply Tukey's fences to an array of readings
+       * @brief Detects and replaces outliers in given array with the median, based on modified
+       *  z-score algorithm. imu_reliable_
        *
-       * @param pointer to array of original acceleration readings
-       * @param threshold value
+       * @param pointer to the array of sensor readings
        */
-      void tukeyFences(NavigationArray& data_array, float threshold);
+      template <class OutlierType>
+      void m_zscore(OutlierType& data_array);
       /**
        * @brief Update central data structure
        */
@@ -163,8 +164,6 @@ namespace navigation {
 
       static constexpr int kPrintFreq = 1;
       static constexpr NavigationType kEmergencyDeceleration = 24;
-      static constexpr float kTukeyThreshold = 1;  // 0.75
-      static constexpr float kTukeyIQRBound = 3;
 
       static constexpr NavigationType kStripeDistance = 30.48;
 
@@ -176,7 +175,11 @@ namespace navigation {
       static constexpr uint32_t spring_coefficient_ = 18;
       static constexpr float    embrake_angle_      = 0.52;
 
-     static constexpr float pi = 3.14159265359;  // Have to approximate
+      static constexpr float pi = 3.14159265359;  // Have to approximate
+
+      // Constants used in modified Z-socre algorithm for outlier detection
+      static constexpr float kMeanADCoeficient      = 1.253314;
+      static constexpr float kMedianADCoeficient    = 1.486;
 
       // System communication
       Logger& log_;

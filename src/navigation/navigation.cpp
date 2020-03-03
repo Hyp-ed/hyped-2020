@@ -233,7 +233,8 @@ void Navigation::queryImus()
   log_.DBG1("NAV", "Raw acceleration values: %.3f, %.3f, %.3f, %.3f", acc_raw_moving[0],
             acc_raw_moving[1], acc_raw_moving[2], acc_raw_moving[3]);
   // Run outlier detection on moving axis
-  tukeyFences(acc_raw_moving, kTukeyThreshold);
+  // tukeyFences(acc_raw_moving, kTukeyThreshold);
+  m_zscore(acc_raw_moving);
   // TODO(Justus) how to run outlier detection on non-moving axes without affecting "reliable"
   // Current idea: outlier function takes reliability write flag, on hold until z-score impl.
 
@@ -411,99 +412,111 @@ void Navigation::setHasInit()
   init_time_set_ = true;
 }
 
-void Navigation::tukeyFences(NavigationArray& data_array, float threshold)
+template <class OutlierType>
+void Navigation::m_zscore(OutlierType& data_array)
 {
-  // Define the quartiles first:
-  float q1 = 0;
-  float q2 = 0;
-  float q3 = 0;
-  // The most likely case is that all four IMUs are still reliable:
-  if (nOutlierImus_ == 0) {
-    // copy the original array for sorting
-    NavigationArray data_array_copy = data_array;
-    // find the quartiles
-    std::sort(data_array_copy.begin(), data_array_copy.end());
-    q1 = (data_array_copy[0]+data_array_copy[1]) / 2.;
-    q2 = (data_array_copy[1]+data_array_copy[2]) / 2.;
-    q3 = (data_array_copy[2]+data_array_copy[3]) / 2.;
-  // The second case is that one IMU is faulty
-  } else if (nOutlierImus_ == 1) {
-    // select non-outlier values
-    NavigationArrayOneFaulty data_array_faulty;
-    if (!imu_reliable_[0]) {
-      data_array_faulty = {{data_array[1], data_array[2], data_array[3]}};
-    } else if (!imu_reliable_[1]) {
-      data_array_faulty = {{data_array[0], data_array[2], data_array[3]}};
-    } else if (!imu_reliable_[2]) {
-      data_array_faulty = {{data_array[0], data_array[1], data_array[3]}};
-    } else if (!imu_reliable_[3]) {
-      data_array_faulty = {{data_array[0], data_array[1], data_array[2]}};
-    }
-    std::sort(data_array_faulty.begin(), data_array_faulty.end());
-    q1 = (data_array_faulty[0] + data_array_faulty[1]) / 2.;
-    q2 =  data_array_faulty[1];
-    q3 = (data_array_faulty[1] + data_array_faulty[2]) / 2.;
-  } else if (nOutlierImus_ < 4) {
-    // set all 0.0 IMUs to non-zero avg
-    float sum_non_outliers = 0.0;
-    unsigned int num_non_outliers = 0;
-    for (int i = 0; i < Sensors::kNumImus; ++i) {
-      if (data_array[i] != 0.0) {
-        // no outlier
-        num_non_outliers += 1;
-        sum_non_outliers += data_array[i];
-      }
-    }
-    for (int i = 0; i < Sensors::kNumImus; ++i) {
-      data_array[i] = sum_non_outliers / num_non_outliers;
-    }
-    // do not check for further outliers because no reliable detection could be made!
-    return;
-  }
-  // find the thresholds
-  float iqr = q3 - q1;
-  // clip IQR to upper bound to avoid issues with very large outliers
-  if (iqr > kTukeyIQRBound) {
-    iqr = kTukeyIQRBound;
-  }
-  float upper_limit = q3 + threshold*iqr;
-  float lower_limit = q1 - threshold*iqr;
-  // replace any outliers with the median
-  for (int i = 0; i < Sensors::kNumImus; ++i) {
-    if ((data_array[i] < lower_limit or data_array[i] > upper_limit) && imu_reliable_[i]) {
-      log_.DBG3("NAV", "Outlier detected in IMU %d, reading: %.3f not in [%.3f, %.3f]. Updated to %.3f", //NOLINT
-                i+1, data_array[i], lower_limit, upper_limit, q2);
-      // log_.DBG3("NAV", "Outlier detected with quantiles: %.3f, %.3f, %.3f", q1, q2, q3);
+  OutlierType data_array_copy;
+  std::copy(std::begin(data_array), std::end(data_array), std::begin(data_array_copy));
+  const int length    = data_array.size();
+  int mid             = length / 2;
+  int dead_imus = 0;
+  float median        = 0;
+  float mean          = 0;
+  float medAD         = 0;
+  float meanAD        = 0;
 
-      data_array[i] = q2;
+  // Detect dead IMUs (IMUs that have a zero reading)
+  for (int i = 0; i < length; i++) {
+    if (data_array[i] == 0) {
+      imu_reliable_[i] = false;
+      dead_imus++;
+    } else {
+      imu_reliable_[i] = true;
+    }
+  }
+  // Calculate the median
+  // This calculation is different in case half of sensors are faulty/dead (aka reading 0.0) since
+  // that would break the algorithm.
+  std::sort(std::begin(data_array_copy), std::end(data_array_copy));
+  if (dead_imus == data::Sensors::kNumImus / 2) {
+      // Contains only non-zero readings of sensors to calculate a more realistic median, this is
+      // due to the small number of sensors. This array is the same length as the original
+      // (for consistency), does not contain faulty IMUs and duplicates the working ones.
+      OutlierType filtered_array;
+      int counter = 0;
+      for (int i = 0; i < length; i++) {
+          if (imu_reliable_[i]) {
+            filtered_array[counter] = data_array[i];
+            filtered_array[counter + 1] = data_array[i];
+            counter += 2;
+          }
+      }
+      // Calculate the median using the filtered_array instead of data_array_copy
+      std::sort(std::begin(filtered_array), std::end(filtered_array));
+      if (length % 2 == 0) {
+         median = (filtered_array[mid] + filtered_array[mid - 1]) / 2;
+      } else {
+           median = filtered_array[mid];
+        }
+  } else {
+      // Regular median calculation
+      if (length % 2 == 0) {
+        median = (data_array_copy[mid] + data_array_copy[mid - 1]) / 2;
+    } else {
+        median = data_array_copy[mid];
+    }
+  }
+  // Calculate the mean value
+  for (int i = 0; i < length; i++) {
+    mean += data_array_copy[i];
+  }
+  mean = mean / length;
+  // Calculate the absolute difference of each value from the median
+  OutlierType medADarray;
+  for (int i = 0; i < length; i++) {
+    medADarray[i] = fabs(data_array[i] - median);
+  }
+  // Calculate the median of that, aka the Median Absolute Deviation
+  std::sort(std::begin(medADarray), std::end(medADarray));
+  if (length % 2 == 0) {
+    medAD = (medADarray[mid] + medADarray[mid - 1]) / 2;
+  } else {
+    medAD = medADarray[mid];
+  }
+  // Calculate the absolute difference of each value from the mean
+  OutlierType meanADarray;
+  for (int i = 0; i < length; i++) {
+    meanADarray[i] = fabs(data_array[i] - mean);
+  }
+  // Calculate the mean of that, aka the Mean Absolute Deviation
+  for (int i = 0; i < length; i++) {
+    meanAD += meanADarray[i];
+  }
+  meanAD = meanAD / length;
+  // Calculate the Z-score of each value
+  OutlierType modZscore;
+  for (int i = 0; i < length; i++) {
+    if (medAD != 0) {
+      modZscore[i] = (data_array[i] - median) / (kMedianADCoeficient * medAD);
+    } else {
+      modZscore[i] = (data_array[i] - median) / (kMeanADCoeficient * meanAD);
+    }
+  }
+  // Marks and replaces outliers with the median
+  for (int i = 0; i < length ; i++) {
+    if (fabs(modZscore[i]) > 3.5 || data_array[i] == 0) {
+      data_array[i] = median;
+      imu_reliable_[i] = false;
+    }
+  }
+  // Update imu_outlier_counter_ array (it is not used yet)
+  for (int i = 0; i < length; i++) {
+    if (!imu_reliable_[i]) {
       imu_outlier_counter_[i]++;
-      // If this counter exceeds some threshold then that IMU is deemed unreliable
-      if (imu_outlier_counter_[i] > 1000 && imu_reliable_[i]) {
-        // log_.DBG3("NAV", "IMU%d is an outlier!", i + 1);
-        imu_reliable_[i] = false;
-        nOutlierImus_++;
-      }
-      if (nOutlierImus_ > 1) {
-        status_ = ModuleStatus::kCriticalFailure;
-        log_.ERR("NAV", "At least two IMUs no longer reliable, entering CriticalFailure.");
-      }
     } else {
       imu_outlier_counter_[i] = 0;
-      if (counter_ % 100 == 0 && imu_reliable_[i]) {
-        /*
-         * log_.DBG3("NAV", "No Outlier detected in IMU %d, reading: %.3f in [%.3f, %.3f]",
-         *           i+1, data_array[i], lower_limit, upper_limit);
-         */
-      }
     }
   }
-  /*
-   * if (counter_ % 100 == 0) {
-   *   log_.DBG3("NAV", "Outliers: IMU1: %d, IMU2: %d, IMU3: %d, IMU4: %d", imu_outlier_counter_[0],
-   *    imu_outlier_counter_[1], imu_outlier_counter_[2], imu_outlier_counter_[3]);
-   *   log_.DBG3("NAV", "Number of outliers: %d", nOutlierImus_);
-   * }
-   */
 }
 
 void Navigation::updateData()
