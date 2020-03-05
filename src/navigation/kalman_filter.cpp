@@ -68,23 +68,28 @@ void KalmanFilter::updateMeasurementCovarianceMatrix(double var)
   kalmanFilter_.updateR(R);
 }
 
-const NavigationType KalmanFilter::filter(NavigationType z)
+const NavigationType KalmanFilter::filter(NavigationType z_acc, NavigationType z_dist)
 {
   VectorXf vz(m_);
-  vz(0) = z;
+
+  vz(0) = z_acc;
+  vz(1) = z_dist;
+
   kalmanFilter_.filter(vz);
 
   NavigationType estimate = getEstimate();
   return estimate;
 }
 
-const NavigationType KalmanFilter::filter(NavigationType u, NavigationType z)
+const NavigationType KalmanFilter::filter(NavigationType u, NavigationType z_acc,
+                                          NavigationType z_dist)
 {
   VectorXf vu(k_);
   vu(0) = u;
 
   VectorXf vz(m_);
-  vz(0) = z;
+  vz(0) = z_acc;
+  vz(1) = z_dist;
 
   kalmanFilter_.filter(vu, vz);
 
@@ -101,7 +106,7 @@ const MatrixXf KalmanFilter::createInitialErrorCovarianceMatrix()
 const MatrixXf KalmanFilter::createStateTransitionMatrix(double dt)
 {
   // TODO(Justas) - create alpha
-  double alpha = 0.5;  // 0.5 is just a dummy value, needs changing
+  double alpha = 1;  // 0.5 is just a dummy value, needs changing
 
   MatrixXf A = MatrixXf::Zero(n_, n_);
   for (unsigned int i = 0; i < n_; i++) {
@@ -174,7 +179,8 @@ const MatrixXf KalmanFilter::createStationaryMeasurementCovarianceMatrix()
 const NavigationType KalmanFilter::getEstimate()
 {
   VectorXf x = kalmanFilter_.getStateEstimate();
-  NavigationType est = x(0);
+  // NavigationType est = x(0);
+  NavigationType est = x(n_ - 1);
   return est;
 }
 

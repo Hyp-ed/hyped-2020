@@ -44,8 +44,8 @@ class KalmanFilter
     void setup();
     void updateStateTransitionMatrix(double dt);
     void updateMeasurementCovarianceMatrix(double var);
-    const NavigationType filter(NavigationType z);
-    const NavigationType filter(NavigationType u, NavigationType z);
+    const NavigationType filter(NavigationType z_acc, NavigationType z_dist);
+    const NavigationType filter(NavigationType u, NavigationType z_acc, NavigationType z_dist);
     // transfer estimate to NavigationVector
     const NavigationType getEstimate();
     // transfer estimate variances to NavigationVector

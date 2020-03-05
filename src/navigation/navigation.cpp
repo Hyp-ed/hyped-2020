@@ -244,7 +244,9 @@ void Navigation::queryImus()
   // Kalman filter the readings which are reliable
   for (int i = 0; i < Sensors::kNumImus; ++i) {
     if (imu_reliable_[i]) {
-      NavigationType estimate = filters_[i].filter(acc_raw_moving[i]);
+      // TODO(Justas) - need to make filter get both acceleration and distance values
+      // TODO(Justas) - current distance value that we use will be 0, change in the future
+      NavigationType estimate = filters_[i].filter(acc_raw_moving[i], 0);
       acc_avg_filter.update(estimate);
     }
   }

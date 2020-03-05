@@ -18,24 +18,28 @@
 
  */
 
+#include <algorithm>
 #include "kalman_multivariate.hpp"
 
 namespace hyped {
     namespace utils {
         namespace math {
-            KalmanMultivariate::KalmanMultivariate(unsigned int n, unsigned int m)
+            KalmanMultivariate::KalmanMultivariate(unsigned int n, unsigned int m, 
+                                                   bool adaptive)
                 : n_(n),
                   m_(m),
                   k_(0),
-                  iteration_(0)
+                  iteration_(0),
+                  isAdaptive(adaptive)
             {}
 
             KalmanMultivariate::KalmanMultivariate(unsigned int n, unsigned int m,
-                                                   unsigned int k)
+                                                   unsigned int k, bool adaptive)
                 : n_(n),
                   m_(m),
                   k_(k),
-                  iteration_(0)
+                  iteration_(0),
+                  isAdaptive(adaptive)
             {}
 
             void KalmanMultivariate::setDynamicsModel(MatrixXf& A, MatrixXf& Q)
@@ -94,16 +98,18 @@ namespace hyped {
                 int prev_window_size = std::min(iteration_ - 1, window_size_);
 
                 // new_window_size will be smaller if less than 'window_size_' iterations happened
-                if ((int)delta_zs_.size() > window_size_) {
+                if (static_cast<int>(delta_zs_.size()) > window_size_) {
                     VectorXf delta_z_old = delta_zs_.front();
                     delta_zs_.pop_front();
-                    C_ = C_ - (delta_z_old * delta_z_old.transpose()) / (float)prev_window_size;
+                    C_ = C_ - (delta_z_old * delta_z_old.transpose()) 
+                    / static_cast<float>(prev_window_size);
                     // assert((int)delta_zs.size() == window_size_);
                 }
 
-                if ((int)delta_zs_.size() > 0) {
-                    C_ = C_ * (float)(prev_window_size / new_window_size) + 
-                    (delta_zs_.back() * delta_zs_.back().transpose()) / (float)new_window_size;
+                if (static_cast<int>(delta_zs_.size()) > 0) {
+                    C_ = C_ * (static_cast<float>(prev_window_size) / new_window_size) + 
+                    (delta_zs_.back() * delta_zs_.back().transpose()) 
+                    / static_cast<float>(new_window_size);
                 }
             }
 

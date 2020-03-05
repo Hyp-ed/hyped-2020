@@ -21,8 +21,8 @@
 #ifndef UTILS_MATH_KALMAN_MULTIVARIATE_HPP_
 #define UTILS_MATH_KALMAN_MULTIVARIATE_HPP_
 
-#include <queue>
 #include <Eigen/Dense>
+#include <deque>
 
 using Eigen::MatrixXf;
 using Eigen::VectorXf;
@@ -44,7 +44,7 @@ namespace hyped {
                * @param[in] n                       state dimensionality
                * @param[in] m                       measurement dimensionality
                */
-              KalmanMultivariate(unsigned int n, unsigned int m);
+              KalmanMultivariate(unsigned int n, unsigned int m, bool adaptive = true);
 
               /**
                * @brief    Construct a new Kalman object with respective dimensions (with control)
@@ -53,7 +53,8 @@ namespace hyped {
                * @param[in] m                       measurement dimensionality
                * @param[in] k                       control dimensionality (default 0)
                */
-              KalmanMultivariate(unsigned int n, unsigned int m, unsigned int k = 0);
+              KalmanMultivariate(unsigned int n, unsigned int m, 
+                                 unsigned int k = 0, bool adaptive = true);
 
               /**
                * @brief    Set dynamics model matrices (without control)
@@ -156,35 +157,36 @@ namespace hyped {
 
              private:
               /* problem dimensions */
-              unsigned int n_;                 // state dimension
-              unsigned int m_;                 // measurement dimension
-              unsigned int k_;                 // control dimension (0 if not set)
+              unsigned int n_;                // state dimension
+              unsigned int m_;                // measurement dimension
+              unsigned int k_;                // control dimension (0 if not set)
 
               /* for adaptive filtering */
-              int iteration_;                  // keeps track of the current iteration of the filtering process
-              // TODO(Justas) figure out window size - if it is constant, or changes over the run
-              static constexpr int window_size_ = 10;  // number of past steps to use for the adaptive update
+              int iteration_;  // keeps track of the current iteration of the filtering process
+              // TODO(Justas) figure out window size
+              static constexpr int window_size_ = 10;  // # of past steps for the adaptive update
+              bool isAdaptive;
 
               /* dynamics model matrices */
-              MatrixXf A_;                     // state transition matrix: n x n
-              MatrixXf B_;                     // control matrix: n x k
-              MatrixXf Q_;                     // process noise covariance: n x n
+              MatrixXf A_;                    // state transition matrix: n x n
+              MatrixXf B_;                    // control matrix: n x k
+              MatrixXf Q_;                    // process noise covariance: n x n
 
               /* measurement model matrices */
-              MatrixXf H_;                     // measurement matrix: m x n
-              MatrixXf R_;                     // measurement noise covariance: m x m
+              MatrixXf H_;                    // measurement matrix: m x n
+              MatrixXf R_;                    // measurement noise covariance: m x m
 
               /* state estimates */
-              VectorXf x_;                     // state vector: n x 1
-              MatrixXf P_;                     // state covariance: n x n
-              MatrixXf I_;                     // identity matrix: n x n
+              VectorXf x_;                    // state vector: n x 1
+              MatrixXf P_;                    // state covariance: n x n
+              MatrixXf I_;                    // identity matrix: n x n
 
               /* Kalman gain */
-              MatrixXf K_;                     // Kalman gain n x m
+              MatrixXf K_;                    // Kalman gain n x m
 
               /* adaptive filtering */
-              std::deque<VectorXf>delta_zs_;   // measurement innovation vectors of past iterations
-              MatrixXf C_;                     // mean of measurement innovation covariances of past few iterations: m x m
+              std::deque<VectorXf>delta_zs_;  // measurement innovation vectors of past steps
+              MatrixXf C_;  // mean of measurement innovation covariances of past few steps: m x m
 
               /**
                * @brief    Predict state based on dynamics (without control)
