@@ -21,6 +21,8 @@
 
 #include "utils/logger.hpp"
 #include "motor_control/controller_interface.hpp"
+#include "utils/interface_factory.hpp"
+#include "utils/system.hpp"
 
 namespace hyped {
 
@@ -35,7 +37,7 @@ class FakeController: public ControllerInterface {
   /**
    * @brief  Initialises private fields in the controller
    */
-  void initController(Logger& log, uint8_t id, bool isFaulty) override;
+  void initController(uint8_t id) override;
   /**
    * @brief  Applies Configuration settings
    */

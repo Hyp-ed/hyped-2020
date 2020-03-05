@@ -18,14 +18,19 @@
 
 #include "fake_controller.hpp"
 
+using hyped::utils::System;
+
 namespace hyped {
 namespace motor_control {
 
-void FakeController::initController(Logger& log, uint8_t id, bool isFaulty)
+FakeController::FakeController()
+  : log_(hyped::utils::System::getLogger())
+  {}
+
+void FakeController::initController(uint8_t id)
 {
-  log_ = log;
   id_ = id;
-  isFaulty_ = isFaulty;
+  isFaulty_ = false;
 }
 
 void FakeController::configure()
@@ -75,7 +80,7 @@ void FakeController::healthCheck()
 {
   if (isFaulty_) {
     critical_failure_ = true;
-    log_.ERR("FakeController", "Fake critical failure");
+    log_.ERR("MOTOR", "Controller %d: Fake Critical Failure", id_);
   }
 }
 
@@ -134,6 +139,14 @@ void FakeController::throwCriticalFailure()
   critical_failure_ = true;
   log_.ERR("FakeController", "Fake critical failure");
 }
+
+ControllerInterface* createFakeController()
+{
+  return new FakeController();
+}
+// register the implementation with the factory
+bool reg_impl = utils::InterfaceFactory<ControllerInterface>
+                ::registerCreator("FakeController", createFakeController);
 
 }
 }
