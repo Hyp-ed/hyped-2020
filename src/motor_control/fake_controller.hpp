@@ -129,9 +129,9 @@ class FakeController: public ControllerInterface {
    */
   void throwCriticalFailure() override;
 
+  Logger&          log_;
   atomic<int32_t>  actual_current_;
   atomic<int32_t>  actual_frequency_;
-  Logger&          log_;
   uint8_t          id_;
   ControllerState  state_;
   bool             critical_failure_;

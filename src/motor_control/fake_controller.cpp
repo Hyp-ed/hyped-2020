@@ -24,7 +24,13 @@ namespace hyped {
 namespace motor_control {
 
 FakeController::FakeController()
-  : log_(hyped::utils::System::getLogger())
+  : log_(hyped::utils::System::getLogger()),
+    actual_current_(0),
+    actual_frequency_(0),
+    state_(ControllerState::kNotReadyToSwitchOn),
+    critical_failure_(false),
+    motor_temp_(0),
+    controller_temp_(0)
   {}
 
 void FakeController::initController(uint8_t id)
