@@ -30,7 +30,9 @@ FakeController::FakeController()
     state_(ControllerState::kNotReadyToSwitchOn),
     critical_failure_(false),
     motor_temp_(0),
-    controller_temp_(0)
+    controller_temp_(0),
+    timer_started_(false),
+    start_time_(0)
   {}
 
 void FakeController::initController(uint8_t id)
@@ -42,6 +44,13 @@ void FakeController::initController(uint8_t id)
 void FakeController::configure()
 {
   log_.INFO("MOTOR", "Controller %d: Configuring", id_);
+}
+
+void FakeController::startTimer()
+{
+  start_time_ = utils::Timer::getTimeMicros();
+  timer_started_ = true;
+  fail_time_ = std::rand() % 20000000 + 1000000;
 }
 
 void FakeController::enterPreOperational()
@@ -67,12 +76,18 @@ void FakeController::checkState()
 
 void FakeController::sendTargetCurrent(int32_t target_current)
 {
+  if (!timer_started_) {
+    startTimer();
+  }
   log_.DBG2("MOTOR", "Controller %d: Updating target velocity to %d", id_, target_current);
   actual_current_ = target_current;
 }
 
 void FakeController::sendTargetFrequency(int32_t target_frequency)
 {
+  if (!timer_started_) {
+    startTimer();
+  }
   log_.DBG2("MOTOR", "Controller %d: Updating target velocity to %d", id_, target_frequency);
   actual_frequency_ = target_frequency;
 }
@@ -85,8 +100,13 @@ void FakeController::quickStop()
 void FakeController::healthCheck()
 {
   if (isFaulty_) {
-    critical_failure_ = true;
-    log_.ERR("MOTOR", "Controller %d: Fake Critical Failure", id_);
+    if (fail_time_ <= (timer.getMicros() - start_time_)) {
+      critical_failure_ = true;
+    }
+  }
+  if (critical_failure_) {
+     throwCriticalFailure();
+     log_.ERR("MOTOR", "Controller %d: Fake Critical Failure", id_);
   }
 }
 
@@ -143,7 +163,7 @@ void FakeController::updateActualFrequency()
 void FakeController::throwCriticalFailure()
 {
   critical_failure_ = true;
-  log_.ERR("FakeController", "Fake critical failure");
+  log_.ERR("MOTOR", "Controller %d: Fake critical failure", id_);
 }
 
 ControllerInterface* createFakeController()

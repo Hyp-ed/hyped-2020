@@ -23,6 +23,7 @@
 #include "motor_control/controller_interface.hpp"
 #include "utils/interface_factory.hpp"
 #include "utils/system.hpp"
+#include "utils/timer.hpp"
 
 namespace hyped {
 
@@ -69,7 +70,7 @@ class FakeController: public ControllerInterface {
    */
   void quickStop() override;
   /**
-   * @brief
+   * @brief Calls throwCriticalFailure function if the controller is faulty and we have reached fail_time_
    */
   void healthCheck() override;
   /**
@@ -102,6 +103,10 @@ class FakeController: public ControllerInterface {
    * @brief  Get and return the tempretature of the controller
    */
   uint8_t getControllerTemp() override;
+  /**
+   * @brief  Times the duration of the run. Starts when we enter the acceleration state
+   */
+  void startTimer();
 
  private:
   /**
@@ -138,6 +143,10 @@ class FakeController: public ControllerInterface {
   uint8_t          motor_temp_;
   uint8_t          controller_temp_;
   bool             isFaulty_;
+  bool             timer_started_;
+  uint64_t         start_time_;
+  uint64_t         fail_time_;
+  utils::Timer     timer;
 };
 
 }

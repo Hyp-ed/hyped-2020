@@ -11,7 +11,7 @@ int main(int argc, char* argv[])
   utils::System& sys = utils::System::getSystem();
   utils::Logger& log = utils::System::getLogger();
 
-  motor_control::ControllerInterface* controller = 
+  motor_control::ControllerInterface* controller =
     sys.config->interfaceFactory.getControllerInterfaceInstance();
 
   controller->initController(1);
@@ -19,8 +19,9 @@ int main(int argc, char* argv[])
   controller->enterOperational();
   controller->sendTargetCurrent(100000);
   controller->sendTargetFrequency(100000);
+  controller->healthCheck();
   controller->quickStop();
   int temp = controller->getMotorTemp();
-  log.INFO("TEST", "Controller %d: %d C", 1, temp);  
+  log.INFO("TEST", "Controller %d: %d C", 1, temp);
   return 0;
 }
