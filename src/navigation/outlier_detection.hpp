@@ -39,13 +39,16 @@ namespace navigation {
   class OutlierDetection {
     public:
       typedef vector<NavigationType> OutlierVector;
-
       OutlierDetection();
       bool critical_failure();
-      void detect_outliers();
+      void detect_outliers();   // it gets m_zscore
+      Navigation::NavigationArray& dataArray_;
+      Navigation::NavigationArray getData_array_copy();
     private:
       OutlierVector values_;
-      vector<bool> sensor_reliable;
+      array<bool, data::Sensors::kNumImus> sensor_reliable;    // Array with lengh kNumImus
+      // Array of booleans to signify which IMUs are reliable or faulty
+      array<bool, Sensors::kNumImus> is_sensor_dead_;           // same as sensor_reliable
       vector<uint32_t> sensor_outlier_counter;
 
       NavigationType getMedian();
@@ -53,6 +56,7 @@ namespace navigation {
       NavigationType getMean();
       NavigationType getMedianAD();
       NavigationType getMeanAD();
+      int dead_IMUS();
       // WIP
   };
 }
