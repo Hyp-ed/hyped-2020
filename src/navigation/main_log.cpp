@@ -38,6 +38,7 @@ namespace navigation {
     for (unsigned int i = 0; i < data::Sensors::kNumImus; i++) {
       imu_loggers_[i] = ImuDataLogger();
       imu_loggers_[i].setup(i, sys_.run_id);
+      log_.INFO("NAV", "FILE PATH IMU %d: %s", i, imu_loggers_[i].file_path_.c_str());
     }
     data::Navigation nav_data = data_.getNavigationData();
     nav_data.module_status = data::ModuleStatus::kReady;
@@ -76,11 +77,14 @@ namespace navigation {
         // Apply calibrated correction
         NavigationVector acc = sensor_readings.value[i].acc;
         NavigationVector acc_cor = acc - gravity_calibration_[i];
-        log_.DBG("NAV", "%.3f %.3f %.3f / %.3f %.3f %.3f",
-                acc[0], acc[1], acc[2],
-                acc_cor[0], acc_cor[1], acc_cor[2]);
+        log_.DBG3("NAV", "%.3f %.3f %.3f / %.3f %.3f %.3f",
+                  acc[0], acc[1], acc[2],
+                  acc_cor[0], acc_cor[1], acc_cor[2]);
         imu_loggers_[i].dataToFile(acc_cor, acc, sensor_readings.timestamp);
       }
+    }
+    for (int i = 0; i < data::Sensors::kNumImus; i++) {
+      imu_loggers_[i].closeFile();
     }
   }
 

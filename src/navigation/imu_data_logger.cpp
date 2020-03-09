@@ -34,7 +34,7 @@ ImuDataLogger::~ImuDataLogger()
 void ImuDataLogger::setup(int imu_id, int run_id)
 {
   char buff[100];
-  snprintf(buff, sizeof(buff), "test_data/run%d/imu%d/data.csv", run_id, imu_id);
+  snprintf(buff, sizeof(buff), "src/navigation/testing/run%d/imu%d/data.csv", run_id, imu_id);
   file_path_ = buff;
   outfile_->open(file_path_);
   *outfile_ << "arx,ary,arz,acx,acy,acz,t\n";
@@ -43,7 +43,7 @@ void ImuDataLogger::setup(int imu_id, int run_id)
 void ImuDataLogger::setupKalman(int imu_id, int run_id)
 {
   char buff[100];
-  snprintf(buff, sizeof(buff), "test_data/run%d/imu%d/data.csv", run_id, imu_id);
+  snprintf(buff, sizeof(buff), "src/navigation/testing/run%d/imu%d/data.csv", run_id, imu_id);
   file_path_ = buff;
   outfile_->open(file_path_);
   *outfile_ << "arx,ary,arz,acx,acy,acz,afx,afy,afz,t\n";
@@ -71,6 +71,11 @@ void ImuDataLogger::dataToFileKalman(NavigationVector& accR,
             << accC[0] << "," << accC[1] << "," << accC[2] << ","
             << x[0]    << "," << x[1]    << "," << x[2]    << ","
             << timestamp << "\n";
+}
+
+void ImuDataLogger::closeFile()
+{
+  outfile_->close();
 }
 
 }}  // namespace hyped navigation

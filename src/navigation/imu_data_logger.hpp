@@ -50,8 +50,9 @@ class ImuDataLogger
                 NavigationVector& accCor,
                 NavigationVector& x,
                 uint32_t timestamp);
-  private:
+    void closeFile();
     std::string file_path_;
+  private:
     std::ofstream* outfile_;
 };
 }}  // namespace hyped navigation
