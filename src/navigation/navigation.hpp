@@ -28,6 +28,7 @@
 #include "data/data_point.hpp"
 #include "sensors/imu.hpp"
 #include "navigation/kalman_filter.hpp"
+#include "navigation/stripe_count.hpp"
 #include "utils/logger.hpp"
 #include "utils/math/integrator.hpp"
 #include "utils/math/statistics.hpp"
@@ -60,7 +61,6 @@ namespace navigation {
       typedef array<NavigationType, Sensors::kNumImus>            NavigationArray;
       typedef array<NavigationType, Sensors::kNumImus-1>          NavigationArrayOneFaulty;
       typedef array<KalmanFilter, Sensors::kNumImus>              FilterArray;
-      typedef array<data::StripeCounter, Sensors::kNumKeyence>    KeyenceDataArray;
 
       /**
        * @brief Construct a new Navigation object
@@ -221,21 +221,11 @@ namespace navigation {
       // Counter of how many IMUs have failed
       uint32_t nOutlierImus_;
 
-      // Stripe counter (rolling values)
-      DataPoint<uint32_t> stripe_counter_;
-      // Keyence data read
-      KeyenceDataArray keyence_readings_;
-      // Previous keyence data for comparison
-      KeyenceDataArray prev_keyence_readings_;
-      // Are the keyence sensors used or ignored?
+      // Stripe counter object
+      StripeCount stripe_counter_;
+      // Flags if keyences are used and if real
       bool keyence_used_;
-      // Is the keyence used fake or real?
       bool keyence_real_;
-      // This counts the number of times the keyence readings disagree with the IMU data more than
-      // allowed due to uncertainty. It is used at the moment to check if the calculated
-      // uncertainty is acceptable.
-      uint32_t keyence_failure_counter_;
-
 
       // To store estimated values
       ImuDataPointArray sensor_readings_;
