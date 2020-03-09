@@ -104,6 +104,7 @@ class Config {
 
   struct MotorControl {
     int isFaulty;
+    int numControllers;
   } motor_control;
 
   struct InterfaceFactory {

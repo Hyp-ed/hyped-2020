@@ -1,2 +1,3 @@
 > MotorControl
 isFaulty 0 
+numControllers 2

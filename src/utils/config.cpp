@@ -200,6 +200,12 @@ void Config::parseMotorControl(char* line)
       motor_control.isFaulty = atoi(value);
     }
   }
+  if (strcmp(token, "numControllers") == 0) {
+    char* value = strtok(NULL, " ");
+    if (value) {
+      motor_control.numControllers = atoi(value);
+    }
+  }
 }
 
 // if there is no creator configured to an interface, we use this one to prevent calling
