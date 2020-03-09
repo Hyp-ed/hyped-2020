@@ -47,7 +47,7 @@ namespace navigation {
     }
     return dead_imus;
   }
-  // Main navigation algorithm
+  // Main outlier detection algorithm
   void OutlierDetection::detect_outliers()
   {
   NavigationType median = getMedian();
