@@ -31,7 +31,7 @@ ControllerManager::ControllerManager()
     initialised(false),
     criticalError(false)
 {
-  //TODO(iain): create instances of controllers
+  // TODO(iain): create instances of controllers
 }
 
 void ControllerManager::initMotors()
