@@ -52,7 +52,7 @@ Navigation::Navigation(Logger& log, unsigned int axis/*=0*/)
 {
   log_.INFO("NAV", "Navigation module started");
   for (unsigned int i = 0; i < Sensors::kNumImus; i++) {
-    filters_[i] = KalmanFilter(1, 1);
+    filters_[i] = KalmanFilter(4, 2);
     filters_[i].setup();
   }
   status_ = ModuleStatus::kInit;

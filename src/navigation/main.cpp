@@ -56,10 +56,10 @@ namespace navigation {
           break;
 
         case State::kAccelerating :
-           if (!nav_.getHasInit()) {
-             nav_.initTimestamps();
-             nav_.setHasInit();
-           }
+          if (!nav_.getHasInit()) {
+            nav_.initTimestamps();
+            nav_.setHasInit();
+          }
 
         case State::kNominalBraking :
         case State::kEmergencyBraking :

@@ -19,6 +19,8 @@
  */
 
 #include <algorithm>
+#include <iostream>
+
 #include "kalman_multivariate.hpp"
 
 namespace hyped {
@@ -30,7 +32,8 @@ namespace hyped {
                   m_(m),
                   k_(0),
                   iteration_(0),
-                  isAdaptive(adaptive)
+                  isAdaptive(adaptive),
+                  C_(MatrixXf::Zero(m, m))
             {}
 
             KalmanMultivariate::KalmanMultivariate(unsigned int n, unsigned int m,
@@ -39,7 +42,8 @@ namespace hyped {
                   m_(m),
                   k_(k),
                   iteration_(0),
-                  isAdaptive(adaptive)
+                  isAdaptive(adaptive),
+                  C_(MatrixXf::Zero(m, m))
             {}
 
             void KalmanMultivariate::setDynamicsModel(MatrixXf& A, MatrixXf& Q)
@@ -142,6 +146,10 @@ namespace hyped {
 
             void KalmanMultivariate::correct(VectorXf& z)
             {
+                std::cerr << "the non inverse is:\n"
+                << (H_ * P_ * H_.transpose() + R_) << std::endl;
+                std::cerr << "the inverse is:\n" 
+                << (H_ * P_ * H_.transpose() + R_).inverse() << std::endl;
                 K_ = (P_ * H_.transpose()) * (H_ * P_ * H_.transpose() + R_).inverse();
                 x_ = x_ + K_ * (z - H_ * x_);
                 P_ = (I_ - K_ * H_) * P_;
@@ -151,11 +159,43 @@ namespace hyped {
             {
                 iteration_++;
 
+                // std::cerr << "VALUES BEFORE" << std::endl;
+                // std::cerr << "x_:\n" << x_ << std::endl;
+                // std::cerr << "A_:\n" << A_ << std::endl;
+                // std::cerr << "P_:\n" << P_ << std::endl;
+                // std::cerr << "Q_:\n" << Q_ << std::endl;
+                // std::cerr << "R_:\n" << R_ << std::endl;
+                // std::cerr << "K_:\n" << K_ << std::endl;
+                // std::cerr << "C_:\n" << C_ << std::endl;
+
                 predict_state();
                 delta_zs_.push_back(z - H_ * x_);
                 predict_covariance();
-                
+
+                // std::cerr << "VALUES AFTER11111111111111111111" << std::endl;
+                // std::cerr << "x_:\n" << x_ << std::endl;
+                // std::cerr << "A_:\n" << A_ << std::endl;
+                // std::cerr << "P_:\n" << P_ << std::endl;
+                // std::cerr << "Q_:\n" << Q_ << std::endl;
+                // std::cerr << "R_:\n" << R_ << std::endl;
+                // std::cerr << "K_:\n" << K_ << std::endl;
+                // std::cerr << "C_:\n" << C_ << std::endl;
+
+
                 correct(z);
+
+                // std::cerr << "VALUES AFTER iteration " << iteration_ << std::endl;
+                // std::cerr << "x_:\n" << x_ << std::endl;
+                // std::cerr << "A_:\n" << A_ << std::endl;
+                // std::cerr << "P_:\n" << P_ << std::endl;
+                // std::cerr << "Q_:\n" << Q_ << std::endl;
+                // std::cerr << "R_:\n" << R_ << std::endl;
+                // std::cerr << "K_:\n" << K_ << std::endl;
+                // std::cerr << "C_:\n" << C_ << std::endl;
+
+                // if (iteration_ >= 10) {
+                //     assert(false);
+                // }
             }
 
             void KalmanMultivariate::filter(VectorXf& u, VectorXf& z)

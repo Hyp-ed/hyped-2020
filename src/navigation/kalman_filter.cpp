@@ -16,6 +16,8 @@
  *  limitations under the License.
  */
 
+#include <iostream>
+
 #include "kalman_filter.hpp"
 
 namespace hyped {
@@ -64,7 +66,8 @@ void KalmanFilter::updateStateTransitionMatrix(double dt)
 
 void KalmanFilter::updateMeasurementCovarianceMatrix(double var)
 {
-  MatrixXf R = MatrixXf::Constant(m_, m_, var);
+  // MatrixXf R = MatrixXf::Constant(m_, m_, var);
+  MatrixXf R = VectorXf::Constant(m_, var).asDiagonal();
   kalmanFilter_.updateR(R);
 }
 
@@ -76,7 +79,6 @@ const NavigationType KalmanFilter::filter(NavigationType z_acc, NavigationType z
   vz(1) = z_dist;
 
   kalmanFilter_.filter(vz);
-
   NavigationType estimate = getEstimate();
   return estimate;
 }
@@ -99,14 +101,15 @@ const NavigationType KalmanFilter::filter(NavigationType u, NavigationType z_acc
 
 const MatrixXf KalmanFilter::createInitialErrorCovarianceMatrix()
 {
-  MatrixXf P = MatrixXf::Constant(n_, n_, kInitialErrorVar);
+  // MatrixXf P = MatrixXf::Constant(n_, n_, kInitialErrorVar);
+  MatrixXf P = VectorXf::Constant(n_, kInitialErrorVar).asDiagonal();
   return P;
 }
 
 const MatrixXf KalmanFilter::createStateTransitionMatrix(double dt)
 {
   // TODO(Justas) - create alpha
-  double alpha = 1;  // 0.5 is just a dummy value, needs changing
+  double alpha = 1;  // just a dummy value, needs changing
 
   MatrixXf A = MatrixXf::Zero(n_, n_);
   for (unsigned int i = 0; i < n_; i++) {
@@ -138,7 +141,6 @@ const MatrixXf KalmanFilter::createStateTransitionMatrix(double dt)
   //     A(i + 2 * n_val, i + 2 * n_val) = 1.;
   // }
   // A(0, 0) = 1.0;
-
   return A;
 }
 
@@ -161,26 +163,28 @@ const MatrixXf KalmanFilter::createStateTransitionCovarianceMatrix()
 
 const MatrixXf KalmanFilter::createTubeMeasurementCovarianceMatrix()
 {
-    MatrixXf R = MatrixXf::Constant(m_, m_, kTubeMeasurementVar);
+    // MatrixXf R = MatrixXf::Constant(m_, m_, kTubeMeasurementVar);
+    MatrixXf R = VectorXf::Constant(m_, kTubeMeasurementVar).asDiagonal();
     return R;
 }
 const MatrixXf KalmanFilter::createElevatorMeasurementCovarianceMatrix()
 {
-  MatrixXf R = MatrixXf::Constant(m_, m_, kElevatorMeasurementVar);
+  // MatrixXf R = MatrixXf::Constant(m_, m_, kElevatorMeasurementVar);
+  MatrixXf R = VectorXf::Constant(m_, kElevatorMeasurementVar).asDiagonal();
   return R;
 }
 
 const MatrixXf KalmanFilter::createStationaryMeasurementCovarianceMatrix()
 {
-  MatrixXf R = MatrixXf::Constant(m_, m_, kStationaryMeasurementVar);
+  // MatrixXf R = MatrixXf::Constant(m_, m_, kStationaryMeasurementVar);
+  MatrixXf R = VectorXf::Constant(m_, kStationaryMeasurementVar).asDiagonal();
   return R;
 }
 
 const NavigationType KalmanFilter::getEstimate()
 {
   VectorXf x = kalmanFilter_.getStateEstimate();
-  // NavigationType est = x(0);
-  NavigationType est = x(n_ - 1);
+  NavigationType est = x(0);
   return est;
 }
 
