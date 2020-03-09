@@ -40,10 +40,14 @@ namespace navigation {
     public:
       typedef vector<NavigationType> OutlierVector;
       OutlierDetection();
+      // Constants used in modified Z-socre algorithm for outlier detection
+      static constexpr float kMeanADCoeficient = 1.253314;
+      static constexpr float kMedianADCoeficient = 1.486;
       bool critical_failure();
       void detect_outliers();   // it gets m_zscore
       Navigation::NavigationArray& dataArray_;
       Navigation::NavigationArray getData_array_copy();
+
     private:
       OutlierVector values_;
       array<bool, data::Sensors::kNumImus> sensor_reliable;    // Array with lengh kNumImus
@@ -52,10 +56,9 @@ namespace navigation {
       vector<uint32_t> sensor_outlier_counter;
 
       NavigationType getMedian();
-      NavigationType getMedian(OutlierVector values);
       NavigationType getMean();
       NavigationType getMedianAD();
-      NavigationType getMeanAD();
+      NavigationType getMeanAD(NavigationType mean);
       int dead_IMUS();
       // WIP
   };

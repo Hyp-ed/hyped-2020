@@ -47,47 +47,118 @@ namespace navigation {
     }
     return dead_imus;
   }
-
+  // Main navigation algorithm
+  void OutlierDetection::detect_outliers()
+  {
+  NavigationType median = getMedian();
+  NavigationType mean = getMean();
+  NavigationType medAD = getMedianAD();
+  NavigationType meanAD = getMeanAD(mean);
+  Navigation::NavigationArray modZscore;
+  for (int i = 0; i < dataArray_.size(); i++) {
+    if (medAD != 0) {
+      modZscore[i] = (dataArray_[i] - median) / (kMedianADCoeficient * medAD);
+    } else {
+      modZscore[i] = (dataArray_[i] - median) / (kMeanADCoeficient * meanAD);
+    }
+  }
+  // Marks and replaces outliers with the median
+  /*for (int i = 0; i < data ; i++) {
+    if (fabs(modZscore[i]) > 3.5 || dataArray[i] == 0) {
+      dataArray_[i] = median;
+      imu_reliable_[i] = false;
+    }
+  }
+  // Update imu_outlier_counter_ array (it is not used yet)
+  for (int i = 0; i < dataArray_.size(); i++) {
+    if (!imu_reliable_[i]) {
+      imu_outlier_counter_[i]++;
+    } else {
+      imu_outlier_counter_[i] = 0;
+    }
+    */
+  }
   NavigationType OutlierDetection::getMedian()
   {
-    Navigation::NavigationArray data_array_copy;
-    std::copy(std::begin(dataArray_), std::end(dataArray_), std::begin(data_array_copy));
+    Navigation::NavigationArray dataArray_copy;
+    std::copy(std::begin(dataArray_), std::end(dataArray_), std::begin(dataArray_copy));
     NavigationType median;
     NavigationType mid = dataArray_.size() / 2;
 
     // Calculate the median
     // This calculation is different in case half of sensors are faulty/dead (aka reading 0.0) since
     // that would break the algorithm.
-    std::sort(std::begin(data_array_copy), std::end(data_array_copy));
+    std::sort(std::begin(dataArray_copy), std::end(dataArray_copy));
     if (dead_IMUS() == data::Sensors::kNumImus / 2) {
         // Contains only non-zero readings of sensors to calculate a more realistic median, this is
         // due to the small number of sensors. This array is the same length as the original
         // (for consistency), does not contain faulty IMUs and duplicates the working ones.
-        Navigation::NavigationArray filtered_array;
+        Navigation::NavigationArray filteredArray;
         int counter = 0;
         for (int i = 0; i < dataArray_.size(); i++) {
             if (is_sensor_dead_[i]) {
-              filtered_array[counter] = dataArray_[i];
-              filtered_array[counter + 1] = dataArray_[i];
+              filteredArray[counter] = dataArray_[i];
+              filteredArray[counter + 1] = dataArray_[i];
               counter += 2;
             }
         }
-        // Calculate the median using the filtered_array instead of data_array_copy
-        std::sort(std::begin(filtered_array), std::end(filtered_array));
+        // Calculate the median using the filteredArray instead of dataArray_copy
+        std::sort(std::begin(filteredArray), std::end(filteredArray));
         if (dataArray_.size() % 2 == 0) {
-          median = (filtered_array[mid] + filtered_array[mid - 1]) / 2;
+          median = (filteredArray[mid] + filteredArray[mid - 1]) / 2;
         } else {
-            median = filtered_array[mid];
+            median = filteredArray[mid];
           }
     } else {
         // Regular median calculation
         if (dataArray_.size() % 2 == 0) {
-          median = (data_array_copy[mid] + data_array_copy[mid - 1]) / 2;
+          median = (dataArray_copy[mid] + dataArray_copy[mid - 1]) / 2;
       } else {
-          median = data_array_copy[mid];
+          median = dataArray_copy[mid];
       }
     }
     return median;
+  }
+
+  NavigationType OutlierDetection::getMean()
+  {
+    NavigationType mean = 0;
+    for (int i = 0; i < dataArray_.size(); i++) {
+      mean += dataArray_[i];
+    }
+    mean = mean / dataArray_.size();
+    return mean;
+  }
+  NavigationType OutlierDetection::getMedianAD()
+  {
+    NavigationType medAD = 0;
+    NavigationType median = 0;
+    NavigationType mid = dataArray_.size() / 2;
+    Navigation::NavigationArray medADarray;
+    for (int i = 0; i < dataArray_.size(); i++) {
+      medADarray[i] = fabs(dataArray_[i] - median);
+    }
+    std::sort(std::begin(medADarray), std::end(medADarray));
+    if (dataArray_.size() % 2 == 0) {
+      medAD = (medADarray[mid] + medADarray[mid - 1]) / 2;
+    } else {
+      medAD = medADarray[mid];
+    }
+    return medAD;
+  }
+
+  NavigationType OutlierDetection::getMeanAD(NavigationType mean)
+  {
+    NavigationType meanAD = 0;
+    Navigation::NavigationArray meanADarray;
+    for (int i = 0; i < dataArray_.size(); i++) {
+      meanADarray[i] = fabs(dataArray_[i] - mean);
+    }
+    for (int i = 0; i < dataArray_.size(); i++) {
+      meanAD += meanADarray[i];
+    }
+    meanAD = meanAD / dataArray_.size();
+    return meanAD;
   }
 }
 }
