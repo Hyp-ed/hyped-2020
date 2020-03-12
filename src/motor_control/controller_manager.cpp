@@ -67,6 +67,8 @@ bool ControllerManager::isCriticalFailure()
   return false;
 }
 
+void ControllerManager::sendOperationalCommand()
+{}
 
 void ControllerManager::registerControllers()
 {}

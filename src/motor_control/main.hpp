@@ -20,20 +20,45 @@
 #define MOTOR_CONTROL_MAIN_HPP_
 
 #include "utils/concurrent/thread.hpp"
+#include "utils/logger.hpp"
+#include "utils/system.hpp"
+#include "data/data.hpp"
+#include "motor_control/controller_manager.hpp"
+
 
 namespace hyped {
 
 using utils::concurrent::Thread;
 using utils::Logger;
+using utils::System;
+using data::Data;
+using data::State;
+using data::ModuleStatus;
+using data::Motors;
+using motor_control::ControllerManager;
+
 
 namespace motor_control {
 
 class Main : public Thread {
  public:
+  /**
+   * @brief {Construct the motor control main thread}
+   */
   Main(uint8_t id, utils::Logger& log);
+  /**
+   * @brief {Entry point for the motor control thread, responds to state machine transitions}
+   */
   void run() override;
+
  private:
-  utils::Logger&  log_;
+  Logger&  log_;
+  System& sys_;
+  Data& data_;
+  ControllerManager* controller_manager_;
+  State current_state_;
+  State previous_state_;
+  bool is_running_;
 };
 
 }  // namespace motor_control
