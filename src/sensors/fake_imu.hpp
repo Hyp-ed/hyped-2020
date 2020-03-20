@@ -1,7 +1,7 @@
 /*
  * Author:
  * Organisation: HYPED
- * Date:
+ * Date: 11/03/2019
  * Description: Main class for fake IMUs
  *
  *    Copyright 2019 HYPED
@@ -25,7 +25,6 @@
 
 #include "sensors/interface.hpp"
 #include "utils/logger.hpp"
-#include "data/data.hpp"
 
 namespace hyped {
 
@@ -33,7 +32,6 @@ using data::ImuData;
 using data::DataPoint;
 using data::NavigationType;
 using data::NavigationVector;
-using data::State;
 
 namespace sensors {
 
@@ -42,102 +40,146 @@ namespace sensors {
  *           and calling getData function multiple times at different time periods to produce
  *           reading that will be used by other classes.
  */
-class FakeImu : public ImuInterface {
+class FakeImuFromFile : public ImuInterface {
  public:
-  FakeImu(utils::Logger& log_,
+  /**
+   * @brief A constructor for the fake IMU class by reading from file
+   *
+   * The line format of the input file would be the following
+   *
+   *               timestamp value_x
+   *               value_y = 9.8 and value_z = 0 set by class
+   *
+   *               Sample of the format is located at 'src/fake_imu_input_xxx.txt'. Note that the
+   *               timestamp for accelerometer has to start with 0 and must be multiples of 250
+   *               for accelerometer. You must include every timestamp from 0 to the last timestamp
+   *               which will be a multiple of 250.
+   *
+   * @param log_
+   * @param acc_file_path
+   * @param dec_file_path
+   * @param em_file_path
+   * @param is_fail_acc
+   * @param is_fail_dec
+   * @param noise
+   */
+  FakeImuFromFile(utils::Logger& log_,
           std::string acc_file_path,
           std::string dec_file_path,
           std::string em_file_path,
-          bool is_fail,
-          State fail_state,
-          float noise = 0.2);           // if want to change
+          bool is_fail_acc,
+          bool is_fail_dec,
+          float noise = 0.2);
 
   bool isOnline() override { return true; }
 
+  /*
+   * @brief     A function that gets the imu data at the time of call. The function will return
+   *            the same data point if the time period since the last update isn't long enough. It
+   *            will also skip a couple of data points if the time since the last call has been
+   *            sufficiently long.
+   */
   void getData(ImuData* imu) override;
 
-
+  /*
+   * @brief     A function that adds noise to the imu data using normal distribution
+   *
+   * @param[in] value    This is the mean of the normal distribution
+   * @param[in] noise    This is the standard deviation of the normal distribution
+   *
+   * @return    Returns random data point value
+   */
+  static NavigationVector addNoiseToData(NavigationVector value, float noise);
 
  private:
   utils::Logger&       log_;
   const uint64_t kAccTimeInterval = 50;
+  void startCal();
+  void startAcc();
+  void startDec();
+  void startEm();
 
   /**
-   * @return ImuData from file, given current state (calib, acc, dec)
+   * @brief sets failure time for acc or dec configuration
+   * @param state current state
    */
-  ImuData getAccValue();
-
+  void setFailure(data::State& state);
 
   /**
-   * @brief needs to be added to data in getAccValue
-   *
-   * @param value
-   * @param noise
-   * @return NavigationVector
+   * @return NavigationVector zero acceleration as a vector
    */
-  static NavigationVector addNoiseToData(NavigationVector value, float noise);
+  NavigationVector getZeroAcc();
 
-  /**
-   * @brief
+  /*
+   * @brief     A function that reads data from file directory. This function also validates them
+   *            by checking if
+   *              1) The timestamp values are valid. Multiples of 250.
+   *              2) The file follows the format given in the comments of the constructor above.
+   *              3) The file exists.
    *
-   */
-  void setFailure();
-
-
-  /**
-   * @brief read into vectors below
-   *
-   * @param acc_file_path
-   * @param dec_file_path
-   * @param em_file_path
+   * @param[in]    The file format is as stated in the constructor comments
    */
   void readDataFromFile(std::string acc_file_path,
                         std::string dec_file_path,
                         std::string em_file_path);
 
-  /**
-   * @brief check whether it is time to read from vector
-   *
-   * @return true
-   * @return false
+  /*
+   * @brief     Checks to see if sufficient time has pass for the sensor to be updated and checks if
+   *            some data points need to be skipped
    */
   bool accCheckTime();
 
-
-  ImuData acc_fail_;
-  ImuData acc_zero_;
-  ImuData* prev_acc_;
-  std::array<NavigationVector, data::ImuData::kFifoSize> fifo_acc_;
+  NavigationVector acc_noise_;
+  NavigationVector prev_acc_;
+  NavigationVector acc_fail_;
 
 
-  /**
-   * @brief storing values from data files in readDataFromFile
-   *
-   */
   std::vector<NavigationVector> acc_val_read_;
-  std::vector<uint32_t>         acc_val_time_;
+  std::vector<bool>             acc_val_operational_;
   std::vector<NavigationVector> dec_val_read_;
-  std::vector<uint32_t>         dec_val_time_;
+  std::vector<bool>             dec_val_operational_;
   std::vector<NavigationVector> em_val_read_;
-  std::vector<uint32_t>         em_val_time_;
-  std::vector<NavigationVector>* read_;
-  std::vector<uint32_t>*         time_;
+  std::vector<bool>             em_val_operational_;
 
   /**
-   * @brief array index counter
-   *
+   * @brief used in accCheckTime()
    */
   int64_t acc_count_;
-  uint64_t ref_time_;
+
+  /**
+   * @brief scales time based on getTimeMicros() and timestamps from file
+   */
+  uint64_t imu_ref_time_;
+  std::string acc_file_path_;
+  std::string dec_file_path_;
+  std::string em_file_path_;
+  bool cal_started_;
+  bool acc_started_;
+  bool dec_started_;
+  bool em_started_;
+  bool is_fail_acc_;
+  bool is_fail_dec_;
   bool failure_happened_;
-  bool is_fail_;
-  bool fail_now_;
-  State fail_state_;
-  uint64_t failure_time_;
+  uint64_t failure_time_acc_;
+  uint64_t failure_time_dec_;
   float noise_;
   data::Data&  data_;
 };
 
+// todo - implement different options for fake imus
+
+// class FakeAccurateImu: public ImuInterface {
+//  public:
+//   explicit FakeAccurateImu(utils::Logger& log_);
+
+//   bool isOnline() override { return true; }
+//   void getData(ImuData* imu) override;
+
+//  private:
+//   data::Data&    data_;
+//   NavigationVector acc_noise_;
+//   utils::Logger& log_;
+// };
 
 }}  // namespace hyped::sensors
 

@@ -1,7 +1,7 @@
 /*
  * Author:
  * Organisation: HYPED
- * Date:
+ * Date: 11/03/2019
  * Description: Main class for fake IMUs
  *
  *    Copyright 2019 HYPED
@@ -31,141 +31,209 @@
 #include "sensors/fake_imu.hpp"
 #include "data/data_point.hpp"
 #include "utils/timer.hpp"
+#include "utils/math/statistics.hpp"
 
 namespace hyped {
 
-using hyped::data::State;
+using utils::math::OnlineStatistics;
 
 namespace sensors {
 
-FakeImu::FakeImu(utils::Logger& log,
+FakeImuFromFile::FakeImuFromFile(utils::Logger& log,
                 std::string acc_file_path,
                 std::string dec_file_path,
                 std::string em_file_path,
-                bool is_fail,                     // these from config
-                State fail_state,
+                bool is_fail_acc,
+                bool is_fail_dec,
                 float noise)
     : log_(log),
+      acc_noise_(1),
+      acc_file_path_(acc_file_path),
+      dec_file_path_(dec_file_path),
+      em_file_path_(em_file_path),
+      cal_started_(false),
+      acc_started_(false),
+      dec_started_(false),
+      em_started_(false),
+      is_fail_acc_(is_fail_acc),
+      is_fail_dec_(is_fail_dec),
       failure_happened_(false),
-      is_fail_(is_fail),
-      fail_state_(fail_state),
+      failure_time_acc_(0),
+      failure_time_dec_(0),
       noise_(noise),
       data_(data::Data::getInstance())
 {
-  acc_fail_.acc[0] = -37.3942;
-  acc_fail_.acc[1] = 0;
-  acc_fail_.acc[2] = 9.8;
-  acc_fail_.operational = true;
-  acc_zero_.acc[0] = 0;
-  acc_zero_.acc[1] = 0;
-  acc_zero_.acc[2] = 9.8;
-  acc_zero_.operational = true;
-  prev_acc_ = &acc_zero_;
-
-  readDataFromFile(acc_file_path, dec_file_path, em_file_path);
-  if (is_fail_) {
-    log_.INFO("Fake-Imu", "Fake-Imu FAIL initialised");
+  acc_fail_[0] = -37.3942;
+  acc_fail_[1] = 0;
+  acc_fail_[2] = 9.8;
+  readDataFromFile(acc_file_path_, dec_file_path_, em_file_path_);
+  if (is_fail_acc_) {
+    log_.INFO("Fake-IMU", "Fake IMU Fail_Acc initialised");
+  } else if (is_fail_dec_) {
+    log_.INFO("Fake-IMU", "Fake IMU Fail_Dec initialised");
   } else {
-    log_.INFO("Fake-Imu", "Fake-Imu initialised");
+    log_.INFO("Fake-IMU", "Fake IMU initialised");
   }
 }
 
-void FakeImu::setFailure()
+void FakeImuFromFile::startCal()
 {
-  // Random point of failure from 0 to 10 seconds
-  // Generate a random time for a failure
-  failure_time_ = (rand() % 10 + 1) * 1000000;
+  imu_ref_time_ = utils::Timer::getTimeMicros();
+  acc_count_ = 0;
 }
 
-void FakeImu::getData(ImuData* data)
+void FakeImuFromFile::startAcc()
 {
-  // switch statement for states
-  // call getAccValue
+  imu_ref_time_ = utils::Timer::getTimeMicros();
+  acc_count_ = 0;
+}
 
-  // read_->clear();
-  // time_->clear();
-  State current_state = data_.getStateMachineData().current_state;
+void FakeImuFromFile::startDec()
+{
+  imu_ref_time_ = utils::Timer::getTimeMicros();
+  acc_count_ = 0;
+}
 
-  if (current_state == State::kAccelerating) {
-      read_ = &acc_val_read_;
-      time_ = &acc_val_time_;
-  } else if (current_state == State::kNominalBraking) {
-      read_ = &dec_val_read_;
-      time_ = &dec_val_time_;
-  } else if (current_state == State::kEmergencyBraking) {
-      read_ = &em_val_read_;
-      time_ = &em_val_time_;
+void FakeImuFromFile::startEm()
+{
+  imu_ref_time_ = utils::Timer::getTimeMicros();
+  acc_count_ =  0;
+}
+
+void FakeImuFromFile::setFailure(data::State& state)
+{
+  // Random point of failure after acc from 0 to 20 seconds
+  if (state == data::State::kAccelerating && is_fail_acc_) {
+    // Generate a random time for a failure
+    failure_time_acc_ = (rand() % 20 + 1) * 1000000;
   }
-  ref_time_ = utils::Timer::getTimeMicros();
-  if (is_fail_) {
-    if (fail_state_ == current_state) {     // if we are in current fail state
-      fail_now_ = true;
-    } else {
-      fail_now_ = false;
-    }  
+  // Random point of failure after dec from 0 to 10 seconds
+  if (state == data::State::kNominalBraking && is_fail_dec_) {
+    // Generate a random time for a failure
+    failure_time_dec_ = (rand() % 10 + 1) * 1000000;
   }
-  if (current_state == State::kCalibrating) {        // stationary states
-    data = &acc_zero_;
-  } else {
+}
+
+void FakeImuFromFile::getData(ImuData* imu)
+{
+  data::State state = data_.getStateMachineData().current_state;
+  bool operational = true;
+
+  if (failure_time_acc_ == 0 || failure_time_dec_ == 0) {
+    setFailure(state);
+  }
+
+  if (state == data::State::kCalibrating) {
+    // start cal
+    if (!cal_started_) {
+      log_.INFO("Fake-IMU", "Start calibrating ...");
+      cal_started_ = true;
+      startCal();
+    }
+
+    // pod stationary
+    prev_acc_ = getZeroAcc();
+
+  } else if (state == data::State::kAccelerating) {
+    // start acc
+    if (!acc_started_) {
+      log_.INFO("Fake-IMU", "Start accelerating ...");
+      acc_started_ = true;
+      startAcc();
+    }
+
     if (accCheckTime()) {
-      ImuData file_data = getAccValue();
-      prev_acc_ = &file_data;
-      data = &file_data;
-    } else {
-      data = prev_acc_;
-    }
-  }
-}
-
-ImuData FakeImu::getAccValue()
-{
-  // read from vector the current acc value given reference time
-  // iterate through timestamp vector to find correct time
-  // get index and return acc value of that index in acc vector
-  ImuData return_data;
-
-  uint32_t current_time = utils::Timer::getTimeMicros();
-
-  uint32_t vector_time;
-  bool is_time = false;
-  uint8_t count = 0;
-  while (!is_time) {
-    if (count >= read_->size()) {         // last value if out of bounds
-      //vector_time = time_[count-1];
-      vector_time = time_->at(count-1);
-      is_time = true;                    // out of bounds
-    } else {
-      //vector_time = time_[count];
-      vector_time = time_->at(count);
-    }
-    if (current_time - ref_time_ >= vector_time) {
-      return_data.operational = true;
-      return_data.acc = read_->at(count);
-      is_time = true;
-    }
-    count++;
-  }
-
-  // re-noising acc value to fill FIFO
-  for (int i = 0; i < data::ImuData::kFifoSize; i++) {
-    fifo_acc_[i] = addNoiseToData(return_data.acc, noise_);
-  }
-  return_data.fifo = fifo_acc_;
-
-  if (fail_now_) {
-    if (utils::Timer::getTimeMicros() - ref_time_ >= failure_time_ || failure_happened_) {
-      if (!failure_happened_) {
-        log_.INFO("Fake-IMU", "Start failure...");
+      acc_count_ = std::min(acc_count_, (int64_t) acc_val_read_.size());
+      // Check so you don't go out of bounds
+      if (acc_count_ == (int64_t) acc_val_read_.size()) {
+        prev_acc_ = acc_val_read_[acc_count_- 1];
+        operational = acc_val_operational_[acc_count_ - 1];
+      } else {
+        prev_acc_ = acc_val_read_[acc_count_];
+        operational = acc_val_operational_[acc_count_];
       }
-      return_data = acc_fail_;
-      failure_happened_ = true;
+      if (is_fail_acc_) {
+        if (utils::Timer::getTimeMicros() - imu_ref_time_ >= failure_time_acc_ || failure_happened_) { // NOLINT [whitespace/line_length]
+          if (!failure_happened_) {
+            log_.INFO("Fake-IMU", "Start failure...");
+          }
+          prev_acc_ = acc_fail_;
+          operational = false;
+          failure_happened_ = true;
+        }
+      }
     }
+
+  } else if (state == data::State::kNominalBraking) {
+    if (!dec_started_) {
+      log_.INFO("Fake-IMU", "Start decelerating...");
+      dec_started_ = true;
+      startDec();
+    }
+
+    if (accCheckTime()) {
+      acc_count_ = std::min(acc_count_, (int64_t) dec_val_read_.size());
+      // Check so you don't go out of bounds
+      if (acc_count_ == (int64_t) dec_val_read_.size()) {
+        prev_acc_ = dec_val_read_[acc_count_-1];
+        operational = dec_val_operational_[acc_count_-1];
+      } else {
+        prev_acc_ = dec_val_read_[acc_count_];
+        operational = dec_val_operational_[acc_count_];
+      }
+      if (is_fail_dec_) {
+        if (utils::Timer::getTimeMicros() - imu_ref_time_ >= failure_time_dec_ || failure_happened_) { // NOLINT [whitespace/line_length]
+          if (!failure_happened_) {
+            log_.INFO("Fake-IMU", "Start failure...");
+          }
+          prev_acc_ = acc_fail_;
+          operational = false;
+          failure_happened_ = true;
+        }
+      }
+
+      // prevent acc from becoming negative when pod is stopping
+      float vel = data_.getNavigationData().velocity;
+      log_.DBG3("Fake-IMU", "velocity: %f", vel);
+      if (vel < 1) {
+        prev_acc_ = getZeroAcc();
+      }
+    }
+
+  } else if (state == data::State::kEmergencyBraking) {
+    if (!em_started_) {
+      log_.INFO("Fake-IMU", "Start emergency breaking...");
+      em_started_ = true;
+      startEm();
+    }
+
+    if (accCheckTime()) {
+      acc_count_ = std::min(acc_count_, (int64_t) em_val_read_.size());
+
+      // Check so you don't go out of bounds
+      if (acc_count_ == (int64_t) em_val_read_.size()) {
+        prev_acc_ = em_val_read_[acc_count_-1];
+      } else {
+        prev_acc_ = em_val_read_[acc_count_];
+      }
+      float vel = data_.getNavigationData().velocity;
+      log_.DBG3("Fake-IMU", "velocity: %f", vel);
+      // prevent acc from becoming negative when pod is stopping
+      if (vel < 1) {
+        prev_acc_ = getZeroAcc();
+      }
+      operational = true;
+    }
+
+  } else {
+    prev_acc_ = getZeroAcc();
+    operational = true;
   }
-  return return_data;
+  imu->acc = prev_acc_;
+  imu->operational = operational;
 }
 
-
-NavigationVector FakeImu::addNoiseToData(NavigationVector value, float noise)
+NavigationVector FakeImuFromFile::addNoiseToData(NavigationVector value, float noise)
 {
   NavigationVector temp;
   static std::default_random_engine generator;
@@ -177,107 +245,124 @@ NavigationVector FakeImu::addNoiseToData(NavigationVector value, float noise)
   return temp;
 }
 
-void FakeImu::readDataFromFile(std::string acc_file_path,
+void FakeImuFromFile::readDataFromFile(std::string acc_file_path,
                                std::string dec_file_path,
                                std::string em_file_path)
 {
   for (int i = 0; i < 3; i++) {
     std::string file_path;
-    std::vector<uint32_t>* timestamp;
+    uint32_t timestamp;
     std::vector<NavigationVector>* val_read;
-    // std::vector<bool>* bool_read;
+    std::vector<bool>* bool_read;
 
     if (i == 0) {
       file_path = acc_file_path;
-      timestamp = &acc_val_time_;
+      timestamp = kAccTimeInterval;
       val_read  = &acc_val_read_;
-
-      // bool_read = &acc_val_operational_;
+      bool_read = &acc_val_operational_;
     } else if (i == 1) {
       file_path = dec_file_path;
-      timestamp = &dec_val_time_;
+      timestamp = kAccTimeInterval;
       val_read  = &dec_val_read_;
-
-      // bool_read = &dec_val_operational_;
+      bool_read = &dec_val_operational_;
     } else if (i == 2) {
       file_path = em_file_path;
-      timestamp = &em_val_time_;
+      timestamp = kAccTimeInterval;
       val_read  = &em_val_read_;
-
-      // bool_read = &em_val_operational_;
+      bool_read = &em_val_operational_;
     }
-
     std::ifstream file;
-    std::string line;
-
-    NavigationVector value;
-    //int counter = 0;
-    uint32_t temp_time;
-
     file.open(file_path);
     if (!file.is_open()) {
       log_.ERR("Fake-IMU", "Wrong file path for argument: %d", i);
-    } else {
-      //std::cout << "This shit works!! \n";
+    }
+
+    NavigationVector value;
+    int counter = 0;
+    uint32_t temp_time;
+    std::string line;
+
     while (getline(file, line)) {
-      //std::cout << line << "\n";
       std::stringstream input(line);
-      
       input >> temp_time;
-      timestamp->push_back(temp_time);
+
+      // checks whether timestamp format matches refresh rate
+      if (temp_time != timestamp*counter) {
+        log_.ERR("Fake-IMU", "Timestamp format invalid %d", temp_time);
+      }
 
       input >> value[0];
       value[1] = 0.0;
       value[2] = 9.8;
 
       val_read->push_back(addNoiseToData(value, noise_));
-      
-    }
+      bool_read->push_back(1);      // always true
+
+      counter++;
     }
 
     file.close();
-
-    //while (getline(file, line)) {
-      //std::stringstream input(line);
-      //input >> temp_time;
-      //timestamp->push_back(temp_time);
-
-      //input >> value[0];
-      //value[1] = 0.0;
-      //value[2] = 9.8;
-      
-
-      //val_read->push_back(addNoiseToData(value, noise_));
-      //bool_read->push_back(1);      // always true
-
-
-      //counter++;
-
-    //}
-
-
-    //file.close();
-
   }
-
-  // print rand index of vectors to test if rerad in
 }
 
-
-
-bool FakeImu::accCheckTime()
+bool FakeImuFromFile::accCheckTime()
 {
   uint64_t now = utils::Timer::getTimeMicros();
-
-  uint64_t time_span = (now - ref_time_) / 1000;
+  uint64_t time_span = (now - imu_ref_time_) / 1000;
 
   if (time_span < kAccTimeInterval*acc_count_) {
     return false;
-
   }
   acc_count_ = time_span/kAccTimeInterval + 1;
   return true;
+}
 
-}}}
+NavigationVector FakeImuFromFile::getZeroAcc()
+{
+  NavigationVector value;
+  value[0] = 0.0;
+  value[1] = 0.0;
+  value[2] = 9.8;
+  return addNoiseToData(value, noise_);
+}
 
-  // namespace hyped::sensors
+
+// FakeAccurateImu::FakeAccurateImu(utils::Logger& log)
+//     : data_(data::Data::getInstance()),
+//       acc_noise_(1),
+//       log_(log)
+// { /* EMPTY */ }
+
+// void FakeAccurateImu::getData(ImuData* imu)
+// {
+//   data::Navigation nav = data_.getNavigationData();
+//   data::Motors     mot = data_.getMotorData();
+//   data::StateMachine      stm = data_.getStateMachineData();
+
+//   if (stm.current_state == data::State::kEmergencyBraking) {
+//     imu->acc[0] = -25;
+//   } else {
+//     // get average rmp
+//     double rpm = 0;
+//     rpm += mot.velocity_1;
+//     rpm += mot.velocity_2;
+//     rpm += mot.velocity_3;
+//     rpm += mot.velocity_4;
+//     rpm /= 4;
+
+//     // get angular velocity
+//     double velocity = (rpm*2*3.14159265358979323846*0.148)/60;
+//     uint32_t scale = 4;
+//     if (!std::isnan(nav.velocity))
+//       imu->acc[0] = (velocity - nav.velocity)/scale;
+//     else
+//       imu->acc[0] = 0.0;
+//   }
+//   imu->acc[1] = 0;
+//   imu->acc[2] = 9.8;
+
+//   imu->acc = FakeImuFromFile::addNoiseToData(imu->acc, acc_noise_);
+//   imu->operational = true;
+// }
+
+}}  // namespace hyped::sensors
