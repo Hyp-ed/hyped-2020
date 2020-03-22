@@ -107,7 +107,8 @@ class FakeImu : public ImuInterface {
   ImuData acc_fail_;
   ImuData acc_zero_;
   ImuData* prev_acc_;
-  std::array<NavigationVector, data::ImuData::kFifoSize> fifo_acc_;
+  std::array<NavigationVector, 500> fifo_acc_;
+  //data::ImuData::kFifoSiz
 
 
   /**
@@ -127,6 +128,7 @@ class FakeImu : public ImuInterface {
    * @brief array index counter
    *
    */
+  int64_t kFifoSize;
   int64_t acc_count_;
   uint64_t ref_time_;
   bool failure_happened_;

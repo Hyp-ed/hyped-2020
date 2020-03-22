@@ -62,6 +62,8 @@ FakeImu::FakeImu(utils::Logger& log,
   acc_zero_.operational = true;
   prev_acc_ = &acc_zero_;
 
+  kFifoSize = 500;
+
   readDataFromFile(acc_file_path, dec_file_path, em_file_path);
   if (is_fail_) {
     log_.INFO("Fake-Imu", "Fake-Imu FAIL initialised");
@@ -147,10 +149,15 @@ ImuData FakeImu::getAccValue()
   }
 
   // re-noising acc value to fill FIFO
-  for (int i = 0; i < data::ImuData::kFifoSize; i++) {
+  for (int i = 0; i < kFifoSize; i++) {
     fifo_acc_[i] = addNoiseToData(return_data.acc, noise_);
   }
-  return_data.fifo = fifo_acc_;
+
+  // added loop below to temparily fix the error in the code
+  for (int i = 0; i < kFifoSize; i++) {
+    return_data.fifo[i] = fifo_acc_[i];
+  }
+  //return_data.fifo = fifo_acc_;
 
   if (fail_now_) {
     if (utils::Timer::getTimeMicros() - ref_time_ >= failure_time_ || failure_happened_) {
