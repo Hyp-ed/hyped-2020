@@ -21,7 +21,7 @@
 namespace hyped {
 namespace embrakes {
 
-Magnetic::Magnetic() {
+Magnetic::Magnetic(Logger& log) {
 
 }
 
