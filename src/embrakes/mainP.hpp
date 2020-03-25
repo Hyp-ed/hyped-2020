@@ -1,5 +1,5 @@
 /*
-* Author:
+* Author: Kornelija Sukyte
 * Organisation: HYPED
 * Date:
 * Description: Entrypoint class to the embrake module, started in it's own thread.
@@ -16,7 +16,6 @@
 *    limitations under the License.
 */
 
-
 #ifndef EMBRAKES_MAIN_HPP_
 #define EMBRAKES_MAIN_HPP_
 
@@ -25,7 +24,7 @@
 #include "utils/logger.hpp"
 #include "data/data.hpp"
 
-#include "embrakes/module.hpp"
+#include "embrakes/stepper.hpp"
 
 namespace hyped {
 
@@ -35,7 +34,9 @@ using utils::System;
 using data::ModuleStatus;
 
 namespace embrakes {
-
+/*
+ * @description This module handles the interaction with the embrakes.
+*/
 class Main : public Thread
 {
   public:
@@ -58,15 +59,12 @@ class Main : public Thread
     data::Telemetry        tlm_data_;
     int                    command_pins_[4];
     int                    button_pins_[4];
-    Module*                brake_1;
-    // Module*               brake_2;
-    // Module*               brake_3;
-    // Module*               brake_4;
+    Stepper*               brake_1;
+    // Stepper*               brake_2;
+    // Stepper*               brake_3;
+    // Stepper*               brake_4;
 };
-}
 
+}}
 
-}
-
-
-#endif
+#endif  // EMBRAKES_MAIN_HPP_
