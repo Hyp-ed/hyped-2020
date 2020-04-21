@@ -69,6 +69,9 @@ info:
 	$(call echo_var,UNAME)
 	$(call echo_var,CFLAGS)
 
+gen-compilation-db:
+	$(Verb) find bin -name '*.json' | xargs sed -e '1s/^/[\n/' -e '$s/,$/\n]/' > compile_commands.json
+
 # PHONY to redo even if .ccls file exists
 .PHONY: .ccls
 .ccls:
