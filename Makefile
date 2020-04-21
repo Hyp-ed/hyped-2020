@@ -41,10 +41,13 @@ else ifeq ($(PYTHONCHECK), 0)
 	$(error Cannot find Python 2.7, please check Python Version 2.7.X  is installed )
 endif
 
-clean-all: clean clean-lint test-clean
+clean-all: clean clean-lint clean-compiledb test-clean
 
 clean-lint:
 	$(Verb) rm -f .cpplint-cache
+
+clean-compiledb:
+	$(Verb) rm -f compile_commands.json
 
 clean:
 	$(Verb) rm -rf $(OBJS_DIR)/
@@ -69,8 +72,13 @@ info:
 	$(call echo_var,UNAME)
 	$(call echo_var,CFLAGS)
 
+# This finds all the individual compilation database files in the bin directory, and
+# combines them into one compile_commands.json file
+# Only works with gnu sed, couldn't get newlines to work with bsd sed
+# On mac use homebrew to install gnu sed
+# Double $ signs are so Make interprets it as a single regex $, on command line use one $
 gen-compilation-db:
-	$(Verb) find bin -name '*.json' | xargs sed -e '1s/^/[\n/' -e '$s/,$/\n]/' > compile_commands.json
+	$(Verb) find bin -name '*.json' -exec sed -e '1s/^/[\n/' -e '$$s/,$$/\n]/' {} + > compile_commands.json
 
 # PHONY to redo even if .ccls file exists
 .PHONY: .ccls

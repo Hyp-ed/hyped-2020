@@ -55,6 +55,11 @@ ifeq ($(shell which $(CC)), )
 	$(warning compiler $(CC) is not installed)
 endif
 
+# only use -MJ flag to generate compilation database if using clang
+ifneq ($(shell $(CC) --version 2>&1 | grep -c "clang"), 0)
+	COMPILATION_DB = -MJ $(addsuffix .json, $@)
+endif
+
 LL := $(CC)
 
 # auto-discover all sources
@@ -69,9 +74,9 @@ $(TARGET): $(DEPENDENCIES) $(OBJS) $(MAIN_OBJ)
 $(MAIN_OBJ): $(OBJS_DIR)/%.o: $(MAIN)
 	$(Echo) "Compiling main: $<"
 	$(Verb) mkdir -p $(dir $@)
-	$(Verb) $(CC) $(DEPFLAGS) $(CFLAGS) -MJ $(addsuffix .json, $@) -o $@ -c $(INC_DIR) $< $(COVERAGE_FLAGS)
+	$(Verb) $(CC) $(DEPFLAGS) $(CFLAGS) $(COMPILATION_DB) -o $@ -c $(INC_DIR) $< $(COVERAGE_FLAGS)
 
 $(OBJS): $(OBJS_DIR)/%.o: $(SRCS_DIR)/%.cpp
 	$(Echo) "Compiling $<"
 	$(Verb) mkdir -p $(dir $@)
-	$(Verb) $(CC) $(DEPFLAGS) $(CFLAGS) -MJ $(addsuffix .json, $@) -o $@ -c $(INC_DIR) $< $(COVERAGE_FLAGS)
+	$(Verb) $(CC) $(DEPFLAGS) $(CFLAGS) $(COMPILATION_DB) -o $@ -c $(INC_DIR) $< $(COVERAGE_FLAGS)
