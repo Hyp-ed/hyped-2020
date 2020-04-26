@@ -23,9 +23,11 @@
 #include <chrono>
 #include "utils/logger.hpp"
 #include "utils/system.hpp"
+#include "utils/ringbuffer.hpp"
 
 using hyped::utils::Logger;
 using hyped::utils::System;
+using hyped::utils::RingBuffer;
 
 void log_stuff(Logger logger, int thread_number, int iterations);
 
@@ -38,7 +40,7 @@ int main(int argc, char* argv[])
     Logger thread_2_logger(true, 3);
     Logger thread_3_logger(true, 3);
 
-    int iterations = 1000000;
+    int iterations = 100000;
 
     system_logger.INFO("LOGGER BENCHMARK", "Starting benchmarks");
 
@@ -66,8 +68,11 @@ void log_stuff(Logger logger, int thread_number, int iterations) {
     std::mt19937 engine(std::random_device{}());
     std::uniform_int_distribution<int> uniform_dist(1, 100);
 
+    RingBuffer<65536> buffer;
+
     for (int i = 0; i < iterations; i++) {
-        logger.INFO("LOGGER BENCHMARK", "Thread %d Iteration %d: random value %d", \
-                    thread_number, i, uniform_dist(engine));
+        /* logger.INFO("LOGGER BENCHMARK", "Thread %d Iteration %d: random value %d", \ */
+        /*             thread_number, i, uniform_dist(engine)); */
+        buffer.enqueue(thread_number, i, uniform_dist(engine));
     }
 }
