@@ -49,6 +49,7 @@ clean-lint:
 clean:
 	$(Verb) rm -rf $(OBJS_DIR)/
 	$(Verb) rm -f $(TARGET)
+	$(Verb) rm -f compile_commands.json
 
 define echo_var
   @echo $(1) = $($1)

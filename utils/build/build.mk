@@ -55,6 +55,14 @@ ifeq ($(shell which $(CC)), )
 	$(warning compiler $(CC) is not installed)
 endif
 
+# detect if clang is being used as compiler
+USING_CLANG := $(shell $(CC) --version 2>&1 | grep -c "clang")
+
+# only use -MJ flag to generate compilation database if using clang
+ifeq ($(USING_CLANG), 1)
+	COMPILATION_DB = -MJ $(addsuffix .json, $@)
+endif
+
 LL := $(CC)
 
 # auto-discover all sources
@@ -65,13 +73,21 @@ MAIN_OBJ  := $(patsubst run/%.cpp, $(OBJS_DIR)/%.o, $(MAIN))
 $(TARGET): $(DEPENDENCIES) $(OBJS) $(MAIN_OBJ)
 	$(Echo) "Linking executable $(MAIN) into $@"
 	$(Verb) $(LL)  -o $@ $(OBJS) $(MAIN_OBJ) $(LFLAGS) $(COVERAGE_FLAGS)
+ifeq ($(USING_CLANG), 1)
+# This finds all the individual compilation database files in the bin directory,
+# and combines them into one compile_commands.json file
+# Only works with gnu sed, couldn't get newlines to work with bsd sed
+# On mac use homebrew to install gnu sed
+# Double $ signs are so Make interprets it as a single regex $, on command line use a single $ sign
+	$(Verb) find bin -name '*.json' -exec sed -e '1s/^/[\n/' -e '$$s/,$$/\n]/' {} + > compile_commands.json
+endif
 
 $(MAIN_OBJ): $(OBJS_DIR)/%.o: $(MAIN)
 	$(Echo) "Compiling main: $<"
 	$(Verb) mkdir -p $(dir $@)
-	$(Verb) $(CC) $(DEPFLAGS) $(CFLAGS) -o $@ -c $(INC_DIR) $< $(COVERAGE_FLAGS)
+	$(Verb) $(CC) $(DEPFLAGS) $(CFLAGS) $(COMPILATION_DB) -o $@ -c $(INC_DIR) $< $(COVERAGE_FLAGS)
 
 $(OBJS): $(OBJS_DIR)/%.o: $(SRCS_DIR)/%.cpp
 	$(Echo) "Compiling $<"
 	$(Verb) mkdir -p $(dir $@)
-	$(Verb) $(CC) $(DEPFLAGS) $(CFLAGS) -o $@ -c $(INC_DIR) $< $(COVERAGE_FLAGS)
+	$(Verb) $(CC) $(DEPFLAGS) $(CFLAGS) $(COMPILATION_DB) -o $@ -c $(INC_DIR) $< $(COVERAGE_FLAGS)

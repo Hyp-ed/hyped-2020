@@ -46,3 +46,9 @@ lib/rapidjson
 # mac crosscompiler
 mac-crosscompiler
 mac-crosscompiler/
+
+# clangd indices
+.clangd/
+
+# compilation database
+compile_commands.json
