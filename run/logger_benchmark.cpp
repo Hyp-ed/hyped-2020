@@ -1,11 +1,9 @@
 /*
  * Authors : HYPED
  * Organisation: HYPED
- * Date: 3. February 2018
- * Description:
- * This is the main executable for BeagleBone pod node
+ * Date: April 2020
  *
- *    Copyright 2018 HYPED
+ *    Copyright 2020 HYPED
  *    Licensed under the Apache License, Version 2.0 (the "License");
  *    you may not use this file except in compliance with the License.
  *    You may obtain a copy of the License at
@@ -40,7 +38,7 @@ int main(int argc, char* argv[])
     Logger thread_2_logger(true, 3);
     Logger thread_3_logger(true, 3);
 
-    int iterations = 100000;
+    int iterations = 1000000;
 
     system_logger.INFO("LOGGER BENCHMARK", "Starting benchmarks");
 
@@ -57,7 +55,7 @@ int main(int argc, char* argv[])
     auto end = std::chrono::steady_clock::now();
 
     int time_elapsed = std::chrono::duration_cast<std::chrono::milliseconds>(end - start).count();
-    float throughput = static_cast<float>(iterations) / time_elapsed;
+    float throughput = static_cast<float>(iterations * 3) / time_elapsed * 1000;
 
     system_logger.INFO("LOGGER BENCHMARK", "Time Elapsed: %d ms \t %1.3f/sec", time_elapsed, throughput);
 
