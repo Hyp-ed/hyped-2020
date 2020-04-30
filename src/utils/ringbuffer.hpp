@@ -22,7 +22,6 @@
 #define UTILS_RINGBUFFER_HPP_
 
 #include <array>
-#include <string>
 #include <cstdio>
 
 #include "utils/concurrent/lock.hpp"
@@ -39,20 +38,14 @@ Lock stdout_lock;
 template <std::size_t N>
 class RingBuffer {
     public:
-        void enqueue(int thread_num, int iteration, int random_num) {
-            char* buf = new char[100];  // wow i hate this, very dangerous
-            std::snprintf(buf, 100, "LOGGER BENCHMARK: Thread %d Iteration %d: random value %d\n", \
-                         thread_num, iteration, random_num);
-
-            if (!this->spaceAvailable(std::strlen(buf))) {
+        void enqueue(char* buf, std::size_t len) {
+            if (!this->spaceAvailable(len)) {
                 this->flush();
             }
 
             for (int i = 0; buf[i] != '\0'; i++) {
                 enqueue(buf[i]);
             }
-
-            delete[] buf;
         }
 
         void flush() {

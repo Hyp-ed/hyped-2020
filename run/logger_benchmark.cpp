@@ -73,6 +73,11 @@ void log_stuff(Logger logger, int thread_number, int iterations) {
     for (int i = 0; i < iterations; i++) {
         /* logger.INFO("LOGGER BENCHMARK", "Thread %d Iteration %d: random value %d", \ */
         /*             thread_number, i, uniform_dist(engine)); */
-        buffer.enqueue(thread_number, i, uniform_dist(engine));
+
+        char buf[100]; // wow i hate this, very dangerous */
+        std::snprintf(buf, 100, "LOGGER BENCHMARK: Thread %d Iteration %d: random value %d\n", \
+                      thread_number, i, uniform_dist(engine));
+
+        buffer.enqueue(buf, std::strlen(buf));
     }
 }
