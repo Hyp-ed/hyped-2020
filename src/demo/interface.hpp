@@ -1,7 +1,7 @@
 /*
- * Author: Neil Weidinger
+ * Authors: M. Kristien
  * Organisation: HYPED
- * Date: March 2019
+ * Date: Dec 2019
  * Description:
  *
  *    Copyright 2019 HYPED
@@ -18,34 +18,17 @@
  *    limitations under the License.
  */
 
-#ifndef TELEMETRY_MAIN_HPP_
-#define TELEMETRY_MAIN_HPP_
-
-#include "telemetry/client.hpp"
-#include "data/data.hpp"
-#include "utils/concurrent/thread.hpp"
-#include "telemetry/client_interface.hpp"
+#ifndef DEMO_INTERFACE_HPP_
+#define DEMO_INTERFACE_HPP_
 
 namespace hyped {
+namespace demo {
 
-using utils::concurrent::Thread;
-using utils::Logger;
-
-namespace telemetry {
-
-class Main: public Thread {
-  public:
-    Main(uint8_t id, Logger& log);
-    void run() override;
-
-  private:
-    friend class SendLoop;
-    friend class RecvLoop;
-    data::Data& data_;
-    ClientInterface* client_;
+class DemoInterface {
+ public:
+  virtual void printYourName() = 0;
 };
 
-}  // namespace telemetry
-}  // namespace hyped
+}}  // namespace hyped::demo
 
-#endif  // TELEMETRY_MAIN_HPP_
+#endif  // DEMO_INTERFACE_HPP_

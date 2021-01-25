@@ -1,8 +1,9 @@
 /*
- * Author: Neil Weidinger
+ * Authors : Martin Kristien
  * Organisation: HYPED
- * Date: March 2019
+ * Date: 3. Dec 2019
  * Description:
+ * Demo executable showing how to use the driver interface abstraction.
  *
  *    Copyright 2019 HYPED
  *    Licensed under the Apache License, Version 2.0 (the "License");
@@ -16,36 +17,24 @@
  *    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  *    See the License for the specific language governing permissions and
  *    limitations under the License.
+ *
  */
 
-#ifndef TELEMETRY_MAIN_HPP_
-#define TELEMETRY_MAIN_HPP_
+#include "utils/system.hpp"
+#include "utils/config.hpp"
+#include "sensors/interface.hpp"
+#include "demo/interface.hpp"
+using namespace hyped;
 
-#include "telemetry/client.hpp"
-#include "data/data.hpp"
-#include "utils/concurrent/thread.hpp"
-#include "telemetry/client_interface.hpp"
+int main(int argc, char* argv[])
+{
+  utils::System::parseArgs(argc, argv);
+  utils::System& sys = utils::System::getSystem();
 
-namespace hyped {
+  sensors::ImuInterface* imu = sys.config->interfaceFactory.getImuInterfaceInstance();
 
-using utils::concurrent::Thread;
-using utils::Logger;
+  demo::DemoInterface* demo = sys.config->interfaceFactory.getDemoInterfaceInstance();
+  demo->printYourName();
 
-namespace telemetry {
-
-class Main: public Thread {
-  public:
-    Main(uint8_t id, Logger& log);
-    void run() override;
-
-  private:
-    friend class SendLoop;
-    friend class RecvLoop;
-    data::Data& data_;
-    ClientInterface* client_;
-};
-
-}  // namespace telemetry
-}  // namespace hyped
-
-#endif  // TELEMETRY_MAIN_HPP_
+  return 0;
+}

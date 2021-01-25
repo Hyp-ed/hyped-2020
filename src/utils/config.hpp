@@ -29,6 +29,7 @@
 #include <string>
 #include <vector>
 #include "data/data.hpp"
+#include "utils/interfaces.hpp"
 
 namespace hyped {
 namespace utils {
@@ -57,7 +58,9 @@ struct ModuleEntry;
   V(StateMachine)       \
   V(Telemetry)          \
   V(Embrakes)           \
-  V(Sensors)
+  V(Sensors)            \
+  V(MotorControl)       \
+  V(InterfaceFactory)
 
 #define CREATE_ENUM(module) \
   k##module,
@@ -91,26 +94,29 @@ class Config {
 
   struct Sensors {
     int chip_select[data::Sensors::kNumImus];
-    int KeyenceL;
-    int KeyenceR;
-    int Thermistor;
-    int hp_master;
-    int HPSSR[data::Batteries::kNumHPBatteries];
-    int IMDOut;
-    int embrakes;
+    int keyence_l;
+    int keyence_r;
+    int thermistor;
+    int master;
+    std::vector<int> hp_shutoff;
+    int checktime;
   } sensors;
 
-//  private:
+  struct MotorControl {
+    int isFaulty;
+  } motor_control;
+
+  struct InterfaceFactory {
+  // Module used in this context refers to the namespace containing the interface.
+#define CREATOR_FUNCTION_POINTERS(module, interface) \
+  module::interface* (*get##interface##Instance)();
+  INTERFACE_LIST(CREATOR_FUNCTION_POINTERS)
+  } interfaceFactory;
+
 #define DECLARE_PARSE(module) \
-  void Parse##module(char* line);
+  void parse##module(char* line);
 
   MODULE_LIST(DECLARE_PARSE)
-  // void ParseNavigation(char* line);
-  // void ParseStateMachine(char* line);
-  // void ParseTelemetry(char* line);
-  // void ParseEmbrakes(char* line);
-  // void ParseSensors(char* line);
-  // void ParseNoModule(char* line);
 
  private:
   explicit Config(char* config_file);
