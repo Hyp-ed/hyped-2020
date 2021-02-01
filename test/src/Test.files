@@ -2,9 +2,9 @@
 # Makefile include defining variable SRCS containing list of all source files
 # add .cpp files using complete path the following format: "<file>.cpp \"
 
-SRCS := \
-  criticalsystems/abobay.test.cpp \
-  criticalsystems/rectangle.test.cpp \
 T_SRCS := \
+  criticalsystems/rectangle.test.cpp \
   state_machine/dummy.test.cpp \
   utils/config.test.cpp \
+  utils/vectors_workshop.test.cpp \
+  

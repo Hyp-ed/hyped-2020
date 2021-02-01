@@ -16,8 +16,8 @@
 *    limitations under the License.
 */
 
-#ifndef HYPED_2020_ABOBAY_TEST_HPP
-#define HYPED_2020_ABOBAY_TEST_HPP
+#ifndef HYPED_2020_ABOBAY_TEST_HPP_
+#define HYPED_2020_ABOBAY_TEST_HPP_
 
 #include "gtest/gtest.h"
 #include "gmock/gmock.h"

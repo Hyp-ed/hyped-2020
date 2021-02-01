@@ -1,4 +1,3 @@
-
 # Default build configuration
 # TARGET  - define the binary name to compile into
 # MAIN    - define application entry point
